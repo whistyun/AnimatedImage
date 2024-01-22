@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using AnimatedImage.Avalonia;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -65,13 +66,19 @@ namespace DemoForAvaloniaUI.ViewModels
     public class ImageSource
     {
         public string Name { get; }
-        public Uri Source { get; }
+        public IBitmapSource Source { get; }
 
         public ImageSource(Uri source)
         {
             Name = source.ToString();
-            Source = source;
+            Source = (BitmapUri)source;
         }
+
+        /* public ImageSource(Uri source)
+        {
+            Name = source.ToString();
+            Source = (BitmapStream)AssetLoader.Open(source);
+        } */
 
         public override string ToString() => Name;
     }

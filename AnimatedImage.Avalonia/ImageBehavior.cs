@@ -14,8 +14,8 @@ namespace AnimatedImage.Avalonia
         /// <summary>
         /// Identifies the <c>AnimatedSource</c> attached property.
         /// </summary>
-        public static readonly AttachedProperty<Uri> AnimatedSourceProperty =
-            AvaloniaProperty.RegisterAttached<ImageBehavior, Image, Uri>("AnimatedSource");
+        public static readonly AttachedProperty<IBitmapSource> AnimatedSourceProperty =
+            AvaloniaProperty.RegisterAttached<ImageBehavior, Image, IBitmapSource>("AnimatedSource");
 
         /// <summary>
         /// Identifies the <c>RepeatBehavior</c> attached property.
@@ -32,12 +32,12 @@ namespace AnimatedImage.Avalonia
 
         static ImageBehavior()
         {
-            AnimatedSourceProperty.Changed.Subscribe(Observer.Create<Uri>(HandleAnimatedSourceChanged));
+            AnimatedSourceProperty.Changed.Subscribe(Observer.Create<IBitmapSource>(HandleAnimatedSourceChanged));
             SpeedRatioProperty.Changed.Subscribe(Observer.Create<double>(HandleSpeedRatioChanged));
             RepeatBehaviorProperty.Changed.Subscribe(Observer.Create<RepeatBehavior>(HandleRepeatBehavior));
         }
 
-        private static void HandleAnimatedSourceChanged(AvaloniaObject element, Uri? animatedSource)
+        private static void HandleAnimatedSourceChanged(AvaloniaObject element, IBitmapSource? animatedSource)
         {
             if (element is Image image)
             {
@@ -106,7 +106,7 @@ namespace AnimatedImage.Avalonia
         /// </summary>
         /// <param name="obj">The element from which to read the property value.</param>
         /// <returns>The currently displayed animated image.</returns>
-        public static Uri GetAnimatedSource(AvaloniaObject obj)
+        public static IBitmapSource GetAnimatedSource(AvaloniaObject obj)
             => obj.GetValue(AnimatedSourceProperty);
 
         /// <summary>

@@ -20,14 +20,18 @@ namespace AnimatedImage.Avalonia
 #endif
 
         public static bool TryCreate(
-            Uri imageUri,
+            IBitmapSource image,
 #if !NETFRAMEWORK
             [MaybeNullWhen(false)]
 #endif
             out FrameRenderer renderer)
         {
-            if (TryOpen(imageUri, out var stream))
-                return FrameRenderer.TryCreate(stream, new WriteableBitmapFaceFactory(), out renderer);
+            if (image is BitmapStream bmp && bmp.StreamSource != null)
+                return FrameRenderer.TryCreate(bmp.StreamSource, new WriteableBitmapFaceFactory(), out renderer);
+
+            if (image is BitmapUri bur && bur.UriSource != null)
+                if (TryOpen(bur.UriSource, out var stream))
+                    return FrameRenderer.TryCreate(stream, new WriteableBitmapFaceFactory(), out renderer);
 
             renderer = null!;
             return false;
