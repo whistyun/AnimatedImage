@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Styling;
+using System.IO;
 
 namespace AnimatedImage.Avalonia
 {
@@ -82,7 +83,7 @@ namespace AnimatedImage.Avalonia
         /// <param name="obj">The element on which to set the property value.</param>
         /// <param name="uri">The animated image to display.</param>
         public static void SetAnimatedSource(AvaloniaObject obj, Uri uri)
-            => ((Image)obj).SetValue(AnimatedSourceProperty, uri);
+            => ((Image)obj).SetValue(AnimatedSourceProperty, new BitmapUri(uri));
 
         /// <summary>
         /// Sets the value of the <c>SpeedRatio</c> attached property for the specified object.
