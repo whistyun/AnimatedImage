@@ -6,8 +6,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AnimatedImageTest.Avalonia.Xamls.UserControl1">
   <StackPanel Orientation="Vertical">
-    <Image anim:ImageBehavior.AnimatedSource="avares://AnimatedImageTest.Avalonia/Assets/Bomb.gif" />
-    <Image anim:ImageBehavior.AnimatedSource="avares://AnimatedImageTest.Avalonia/Assets/BouncingBeachBall.png" />
-    <Image anim:ImageBehavior.AnimatedSource="avares://AnimatedImageTest.Avalonia/Assets/UnsupportImageFormat.bmp" />
+    <Image x:Name="img1" anim:ImageBehavior.AnimatedSource="avares://AnimatedImageTest.Avalonia/Assets/Bomb.gif" />
+    <Image x:Name="img2" anim:ImageBehavior.AnimatedSource="avares://AnimatedImageTest.Avalonia/Assets/BouncingBeachBall.png" />
+    <Image x:Name="img3" anim:ImageBehavior.AnimatedSource="avares://AnimatedImageTest.Avalonia/Assets/earth.gif" />
   </StackPanel>
 </UserControl>

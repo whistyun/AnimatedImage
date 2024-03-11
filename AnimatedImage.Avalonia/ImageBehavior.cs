@@ -15,8 +15,8 @@ namespace AnimatedImage.Avalonia
         /// <summary>
         /// Identifies the <c>AnimatedSource</c> attached property.
         /// </summary>
-        public static readonly AttachedProperty<IBitmapSource> AnimatedSourceProperty =
-            AvaloniaProperty.RegisterAttached<ImageBehavior, Image, IBitmapSource>("AnimatedSource");
+        public static readonly AttachedProperty<AnimatedImageSource> AnimatedSourceProperty =
+            AvaloniaProperty.RegisterAttached<ImageBehavior, Image, AnimatedImageSource>("AnimatedSource");
 
         /// <summary>
         /// Identifies the <c>RepeatBehavior</c> attached property.
@@ -33,12 +33,12 @@ namespace AnimatedImage.Avalonia
 
         static ImageBehavior()
         {
-            AnimatedSourceProperty.Changed.Subscribe(Observer.Create<IBitmapSource>(HandleAnimatedSourceChanged));
+            AnimatedSourceProperty.Changed.Subscribe(Observer.Create<AnimatedImageSource>(HandleAnimatedSourceChanged));
             SpeedRatioProperty.Changed.Subscribe(Observer.Create<double>(HandleSpeedRatioChanged));
             RepeatBehaviorProperty.Changed.Subscribe(Observer.Create<RepeatBehavior>(HandleRepeatBehavior));
         }
 
-        private static void HandleAnimatedSourceChanged(AvaloniaObject element, IBitmapSource? animatedSource)
+        private static void HandleAnimatedSourceChanged(AvaloniaObject element, AnimatedImageSource? animatedSource)
         {
             if (element is Image image)
             {
@@ -47,12 +47,13 @@ namespace AnimatedImage.Avalonia
                     oldStyle.Dispose();
                 }
 
-                if (animatedSource is not null
-                 && FrameRendererCreator.TryCreate(animatedSource, out var renderer))
+                if (animatedSource is not null)
                 {
                     var behavior = GetRepeatBehavior(image);
                     var speedRatio = GetSpeedRatio(image);
-                    AnimationStyle.Setup(image, speedRatio, behavior, renderer);
+
+                    if (animatedSource.TryCreate() is { } renderer)
+                        AnimationStyle.Setup(image, speedRatio, behavior, renderer);
                 }
             }
         }
@@ -82,8 +83,8 @@ namespace AnimatedImage.Avalonia
         /// </summary>
         /// <param name="obj">The element on which to set the property value.</param>
         /// <param name="uri">The animated image to display.</param>
-        public static void SetAnimatedSource(AvaloniaObject obj, Uri uri)
-            => ((Image)obj).SetValue(AnimatedSourceProperty, new BitmapUri(uri));
+        public static void SetAnimatedSource(AvaloniaObject obj, AnimatedImageSource uri)
+            => ((Image)obj).SetValue(AnimatedSourceProperty, uri);
 
         /// <summary>
         /// Sets the value of the <c>SpeedRatio</c> attached property for the specified object.
@@ -107,7 +108,7 @@ namespace AnimatedImage.Avalonia
         /// </summary>
         /// <param name="obj">The element from which to read the property value.</param>
         /// <returns>The currently displayed animated image.</returns>
-        public static IBitmapSource GetAnimatedSource(AvaloniaObject obj)
+        public static AnimatedImageSource GetAnimatedSource(AvaloniaObject obj)
             => obj.GetValue(AnimatedSourceProperty);
 
         /// <summary>

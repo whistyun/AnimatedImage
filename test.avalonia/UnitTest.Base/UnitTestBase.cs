@@ -24,6 +24,7 @@ namespace UnitTest.Base
         }
 
         IDisposable disposable;
+        bool setupEnd;
 
         protected string AssetPath;
 
@@ -37,6 +38,9 @@ namespace UnitTest.Base
         [SetUp]
         public void WaitApplicationStart()
         {
+            if (setupEnd) return;
+            setupEnd = true;
+
             Debug.Print("Begin WaitApplicationStart");
             while (!App.ApplicationStarted)
                 Thread.Sleep(10);

@@ -66,12 +66,12 @@ namespace DemoForAvaloniaUI.ViewModels
     public class ImageSource
     {
         public string Name { get; }
-        public IBitmapSource Source { get; }
+        public AnimatedImageSource Source { get; }
 
         public ImageSource(Uri source)
         {
             Name = source.ToString();
-            Source = (BitmapUri)source;
+            Source = (AnimatedImageUri)source;
         }
 
         /* public ImageSource(Uri source)
