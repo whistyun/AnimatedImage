@@ -30,7 +30,7 @@ namespace AnimatedImage.Avalonia
                 ? new Uri(s, UriKind.Relative)
                 : new Uri(s, UriKind.RelativeOrAbsolute);
 
-            return new AnimatedImageUri(uri);
+            return new AnimatedImageSourceUri(uri);
         }
     }
 }

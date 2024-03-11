@@ -71,7 +71,7 @@ namespace DemoForAvaloniaUI.ViewModels
         public ImageSource(Uri source)
         {
             Name = source.ToString();
-            Source = (AnimatedImageUri)source;
+            Source = new AnimatedImageSourceUri(source);
         }
 
         /* public ImageSource(Uri source)

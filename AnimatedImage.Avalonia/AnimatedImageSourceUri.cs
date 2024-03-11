@@ -1,4 +1,4 @@
-﻿using Avalonia.Platform;
+﻿ using Avalonia.Platform;
 using System;
 using System.IO;
 
@@ -7,7 +7,7 @@ namespace AnimatedImage.Avalonia
     /// <summary>
     /// Represents an object type that creates FrameRenderer from uri.
     /// </summary>
-    public record AnimatedImageUri : AnimatedImageSource
+    public record AnimatedImageSourceUri : AnimatedImageSource
     {
 #if !NETFRAMEWORK
         private static readonly System.Net.Http.HttpClient s_client = new();
@@ -28,13 +28,13 @@ namespace AnimatedImage.Avalonia
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        public AnimatedImageUri() { }
+        public AnimatedImageSourceUri() { }
 #endif
         /// <summary>
         /// Initializes a new instance
         /// </summary>
         /// <param name="uri">The uri indentifying an image resource.</param>
-        public AnimatedImageUri(Uri uri)
+        public AnimatedImageSourceUri(Uri uri)
         {
             UriSource = uri;
         }

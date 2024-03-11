@@ -6,7 +6,7 @@ namespace AnimatedImage.Avalonia
     /// <summary>
     /// Represents an object type that creates FrameRenderer from stream.
     /// </summary>
-    public record AnimatedImageStream : AnimatedImageSource
+    public record AnimatedImageSourceStream : AnimatedImageSource
     {
         /// <summary>
         /// The image stream.
@@ -23,13 +23,13 @@ namespace AnimatedImage.Avalonia
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        public AnimatedImageStream() { }
+        public AnimatedImageSourceStream() { }
 #endif
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="stream">The image stream.</param>
-        public AnimatedImageStream(Stream stream)
+        public AnimatedImageSourceStream(Stream stream)
         {
             StreamSource = stream;
         }
