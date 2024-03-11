@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AvaloniaVersion>11.0.7</AvaloniaVersion>
+    <AvaloniaVersion>11.0.0</AvaloniaVersion>
     <SharpCompressVersion>0.36.0</SharpCompressVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageVersion>1.0.6</PackageVersion>
+    <PackageVersion>1.0.7</PackageVersion>
   </PropertyGroup>
 
 </Project>
