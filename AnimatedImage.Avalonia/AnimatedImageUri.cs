@@ -7,7 +7,7 @@ namespace AnimatedImage.Avalonia
     /// <summary>
     /// Represents an object type that creates FrameRenderer from uri.
     /// </summary>
-    public class AnimatedImageUri : AnimatedImageSource
+    public record AnimatedImageUri : AnimatedImageSource
     {
 #if !NETFRAMEWORK
         private static readonly System.Net.Http.HttpClient s_client = new();

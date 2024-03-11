@@ -6,7 +6,7 @@ namespace AnimatedImage.Avalonia
     /// <summary>
     /// Represents an object type that creates FrameRenderer from stream.
     /// </summary>
-    public class AnimatedImageStream : AnimatedImageSource
+    public record AnimatedImageStream : AnimatedImageSource
     {
         /// <summary>
         /// The image stream.

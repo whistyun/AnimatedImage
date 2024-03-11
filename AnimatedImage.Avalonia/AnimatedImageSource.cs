@@ -8,7 +8,7 @@ namespace AnimatedImage.Avalonia
     /// Represents an object type that creates FrameRenderer.
     /// </summary>
     [TypeConverter(typeof(AnimatedImageSourceConverter))]
-    public abstract class AnimatedImageSource
+    public abstract record AnimatedImageSource
     {
         /// <summary>
         /// Creates FrameRenderer
