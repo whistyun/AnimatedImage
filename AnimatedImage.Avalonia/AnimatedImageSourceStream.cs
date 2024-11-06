@@ -19,6 +19,9 @@ namespace AnimatedImage.Avalonia
 #endif
         }
 
+        public override Stream? SourceSeekable
+            => StreamSource is not null ? StreamSource.SupportSeek() : null;
+
 #if NET5_0_OR_GREATER
         /// <summary>
         /// Initializes a new instance.

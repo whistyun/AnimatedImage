@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Styling;
 using System.IO;
+using Avalonia.Media.Imaging;
 
 namespace AnimatedImage.Avalonia
 {
@@ -47,6 +48,11 @@ namespace AnimatedImage.Avalonia
                     oldStyle.Dispose();
                 }
 
+                if (image.Source is not null)
+                {
+                    image.Source = null;
+                }
+
                 if (animatedSource is not null)
                 {
                     var behavior = GetRepeatBehavior(image);
@@ -54,6 +60,9 @@ namespace AnimatedImage.Avalonia
 
                     if (animatedSource.TryCreate() is { } renderer)
                         AnimationStyle.Setup(image, speedRatio, behavior, renderer);
+
+                    if (animatedSource.SourceSeekable is Stream stream)
+                        image.Source = new Bitmap(stream);
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿ using Avalonia.Platform;
+﻿using Avalonia.Platform;
 using System;
 using System.IO;
 
@@ -24,6 +24,9 @@ namespace AnimatedImage.Avalonia
 #endif
         }
 
+        /// <inheritdoc/>
+        public override Stream? SourceSeekable => OpenFirst()?.SupportSeek();
+
 #if NET5_0_OR_GREATER
         /// <summary>
         /// Initializes a new instance.
@@ -42,10 +45,7 @@ namespace AnimatedImage.Avalonia
         /// <inheritdoc/>
         public override FrameRenderer? TryCreate()
         {
-            if (UriSource is null)
-                return null;
-
-            if (OpenFirst(UriSource) is { } stream)
+            if (OpenFirst() is { } stream)
             {
                 var seekableStream = stream.SupportSeek();
                 var factory = new WriteableBitmapFaceFactory();
@@ -56,7 +56,9 @@ namespace AnimatedImage.Avalonia
             return null;
         }
 
-        static Stream? OpenFirst(Uri uri)
+        private Stream? OpenFirst() => UriSource is not null ? StaticOpenFirst(UriSource) : null;
+
+        static Stream? StaticOpenFirst(Uri uri)
         {
             switch (uri.Scheme)
             {
