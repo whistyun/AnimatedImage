@@ -1,10 +1,14 @@
+using System.Runtime.InteropServices;
+
 namespace AnimatedImage.Formats.Gif
 {
+    [StructLayout(LayoutKind.Sequential)]
     internal struct GifColor
     {
         public byte B { get; }
         public byte G { get; }
         public byte R { get; }
+        public byte A { get; } = 255;
 
         internal GifColor(byte r, byte g, byte b)
         {

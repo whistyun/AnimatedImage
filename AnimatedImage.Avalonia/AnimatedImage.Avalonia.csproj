@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\AnimatedImage.props" />
 
@@ -7,9 +7,9 @@
     <Nullable>enable</Nullable>
     <LangVersion>10</LangVersion>
     <SignAssembly>true</SignAssembly>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
     <PackageReadmeFile>AnimatedImage.Avalonia.md</PackageReadmeFile>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>

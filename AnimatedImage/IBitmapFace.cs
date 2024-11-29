@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AnimatedImage
+﻿namespace AnimatedImage
 {
     /// <summary>
     /// The wrapper for image rendering.
@@ -40,5 +34,14 @@ namespace AnimatedImage
         /// <param name="width">The width of the specified area</param>
         /// <param name="height">The height of the specified area</param>
         public void ReadBGRA(byte[] buffer, int x, int y, int width, int height);
+
+        /// <summary>
+        /// Writes 0 to the specified area in the image.
+        /// </summary>
+        /// <param name="x">The left position of the specified area</param>
+        /// <param name="y">The top position of the specified area</param>
+        /// <param name="width">The width of the specified area</param>
+        /// <param name="height">The height of the specified area</param>
+        public void Clear(int x, int y, int width, int height);
     }
 }
