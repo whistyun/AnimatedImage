@@ -5,6 +5,10 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Diagnostics;
+using Avalonia.Threading;
 
 namespace AnimatedImage.Avalonia
 {
@@ -12,6 +16,8 @@ namespace AnimatedImage.Avalonia
     {
         private static readonly AttachedProperty<int> FrameIndexProperty =
             AvaloniaProperty.RegisterAttached<AnimationStyle, Image, int>("FrameIndex");
+
+        private static Random s_random = new();
 
         private Image _image;
         private IterationCount _defaultCount;
@@ -21,6 +27,9 @@ namespace AnimatedImage.Avalonia
         private IDisposable? _disposable1;
         private IDisposable? _disposable2;
         private int _oldIndex = -1;
+        private bool _rendering = false;
+        private bool _isDisposed = false;
+        private Stopwatch _stopwatch = new Stopwatch();
 
         private AnimationStyle(Image image, FrameRenderer renderer) : base(x => x.OfType<Image>())
         {
@@ -52,7 +61,6 @@ namespace AnimatedImage.Avalonia
             Animations.Add(_animation);
 
             _disposable2 = image.Bind(Image.SourceProperty, _source);
-
             var observer = image.GetObservable(FrameIndexProperty);
             _disposable1 = observer.Subscribe(new Observer<int>(HandleFrame));
         }
@@ -92,6 +100,9 @@ namespace AnimatedImage.Avalonia
 
         public void Dispose()
         {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
             if (_animation is not null)
             {
                 _animation.Children.Clear();
@@ -126,19 +137,64 @@ namespace AnimatedImage.Avalonia
             if (_source is null)
                 return;
 
-            if (frameIndex >= _renderer.FrameCount)
-                _renderer.ProcessFrame(frameIndex % _renderer.FrameCount);
-            else
-                _renderer.ProcessFrame(frameIndex);
-
-            var face = (WriteableBitmapFace)_renderer.Current;
-
-            if (_renderer.CurrentIndex != _oldIndex)
+            var newIndex = frameIndex % _renderer.FrameCount;
+            if (newIndex == _oldIndex)
             {
-                _oldIndex = _renderer.CurrentIndex;
-                _source.OnNext(face.Bitmap);
+                return;
             }
-            else _source.OnNext(face.Current);
+
+            if (_rendering)
+            {
+                return;
+            }
+
+            var frame = _renderer[newIndex];
+            var delay = (long)(frame.End - frame.Begin).TotalMilliseconds;
+
+            _stopwatch.Restart();
+            _rendering = true;
+            _renderer.ProcessFrameAsync(newIndex)
+                     .ConfigureAwait(false)
+                     .GetAwaiter()
+                     .OnCompleted(async () =>
+                     {
+                         try
+                         {
+                             if (_isDisposed) return;
+
+                             var elapsed = await Dispatcher.UIThread.InvokeAsync(() =>
+                             {
+                                 if (_isDisposed) return 0;
+                                 var face = (WriteableBitmapFace)_renderer.Current;
+                                 _source.OnNext(face.Bitmap);
+                                 _image.InvalidateVisual();
+                                 return _stopwatch.ElapsedMilliseconds;
+                             });
+
+                             if (_isDisposed) return;
+
+                             // If drawing takes too long, the next frame drawing will fire immediately.
+                             // As a result, It may cause crowding the UI thread.
+                             // The following code makes the drawing task to wait to reduce the workload on the UI thread.
+                             if (delay < elapsed)
+                             {
+                                 var order = (int)Math.Max(1, Math.Log10((elapsed - delay) / 2));
+                                 var baseV = Math.Min((int)Math.Pow(10, order), 500);
+                                 var waittime = baseV + s_random.Next(baseV);
+                                 await Task.Delay(waittime);
+                             }
+
+                             if (_isDisposed) return;
+
+                             Dispatcher.UIThread.Invoke(() =>
+                             {
+                                 if (_isDisposed) return;
+                                 _oldIndex = _renderer.CurrentIndex;
+                                 _rendering = false;
+                             });
+                         }
+                         catch (TaskCanceledException) { }
+                     });
         }
 
         public static void Setup(Image image, double speedRatio, RepeatBehavior behavior, FrameRenderer renderer)

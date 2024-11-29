@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -28,6 +30,27 @@ namespace AnimatedImage.Wpf
         {
             var bounds = new Int32Rect(x, y, Math.Min(width, Bitmap.PixelWidth - x), Math.Min(height, Bitmap.PixelHeight - y));
             Bitmap.WritePixels(bounds, buffer, 4 * width, 0);
+        }
+
+        public unsafe void Clear(int x, int y, int width, int height)
+        {
+            Bitmap.Lock();
+
+            if (x < 0 || x + width > Bitmap.Width)
+                throw new ArgumentException();
+
+            if (y < 0 || y + height > Bitmap.Height)
+                throw new ArgumentException();
+
+            var leftTop = Bitmap.BackBuffer + (y * Bitmap.BackBufferStride) + (x * 4);
+            var lineLength = (uint)width * 4;
+            for (var i = 0; i < height; ++i)
+            {
+                Unsafe.InitBlock(leftTop.ToPointer(), 0, lineLength);
+                leftTop += Bitmap.BackBufferStride;
+            }
+
+            Bitmap.Unlock();
         }
     }
 

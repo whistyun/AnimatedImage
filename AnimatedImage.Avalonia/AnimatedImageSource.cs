@@ -16,6 +16,9 @@ namespace AnimatedImage.Avalonia
         /// <returns>The created FrameRenderer, or null if creation is failed.</returns>
         public abstract FrameRenderer? TryCreate();
 
+        /// <summary>An image source</summary>
+        public abstract Stream? SourceSeekable { get; }
+
         /// <summary>
         /// Opens the uri and creates AnimatedImageSource.
         /// </summary>

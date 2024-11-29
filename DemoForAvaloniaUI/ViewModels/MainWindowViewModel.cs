@@ -41,6 +41,7 @@ namespace DemoForAvaloniaUI.ViewModels
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/radar.gif")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/siteoforigin.gif")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/UnsupportImageFormat.bmp")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/UnsupportImageFormat.jpg")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/working.gif"))
             });
 

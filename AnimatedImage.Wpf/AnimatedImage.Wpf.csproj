@@ -10,6 +10,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
     <PackageReadmeFile>AnimatedImage.Wpf.md</PackageReadmeFile>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>

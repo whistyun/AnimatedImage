@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>10</LangVersion>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
