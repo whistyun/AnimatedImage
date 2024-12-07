@@ -99,7 +99,9 @@ namespace AnimatedImage.Formats.Gif
             int totalRead = 0;
             while (totalRead < count)
             {
-                totalRead += stream.Read(buffer, offset + totalRead, count - totalRead);
+                var n = stream.Read(buffer, offset + totalRead, count - totalRead);
+                if (n == 0) throw new GifDecoderException("Not enough data.");
+                totalRead += n;
             }
         }
     }
