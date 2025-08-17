@@ -39,7 +39,7 @@ namespace DemoForWpf
 
         private void btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog {Filter = "Image Files(*.PNG;*.GIF)|*.PNG;*.GIF" };
+            var dlg = new OpenFileDialog {Filter = "Image Files(*.PNG;*.GIF;*.WEBP)|*.PNG;*.GIF;*.WEBP" };
             if (dlg.ShowDialog() == true)
             {
                 Images.Add(dlg.FileName);

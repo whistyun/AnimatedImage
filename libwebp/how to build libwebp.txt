@@ -1,0 +1,17 @@
+
+#source code
+https://github.com/webmproject/libwebp
+
+#Building libwebp - Using vcpkg
+
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+
+Put “x64-windows-static-dll.cmake” in the “vcpkg\triplets” folder.
+
+./vcpkg integrate install
+./vcpkg install libwebp:x64-windows-static-dll
+
+libwebp.dll and other files are generated in the “vcpkg\installed\x64-windows-static-dll\bin” folder.
+
