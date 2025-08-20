@@ -11,8 +11,10 @@ namespace AnimatedImage
     /// <summary>
     /// Rendering helper for one image source.
     /// </summary>
-    public abstract class FrameRenderer
+    public abstract class FrameRenderer : IDisposable
     {
+        private bool disposedValue;
+
         /// <summary>
         /// Currently drawn frame index.
         /// </summary>
@@ -127,15 +129,24 @@ namespace AnimatedImage
                 return true;
             }
 
+            if (Signature.IsWebPSignature(magic))
+            {
+                renderer = new WebpRenderer(stream, factory);
+                return true;
+            }
+
             renderer = null!;
             return false;
         }
+
 
         private static class Signature
         {
             public static readonly byte[] GifHead = new byte[] { 0x47, 0x49, 0x46, 0x38 }; // GIF8
             public static readonly byte[] Png = ApngFrame.Signature;
-            public static readonly int MaxLength = Math.Max(GifHead.Length + 2, Png.Length);
+            public static readonly byte[] WebpHead = new byte[] { 0x52, 0x49, 0x46, 0x46 }; // RIFF
+            public static readonly byte[] WebpHead2 = new byte[] { 0x57, 0x45, 0x42, 0x50 }; // WEBP
+            public static readonly int MaxLength = Math.Max(Math.Max(GifHead.Length + 2, Png.Length), WebpHead.Length + 4 + WebpHead2.Length);
 
             public static bool IsGifSignature(byte[] signature)
             {
@@ -169,6 +180,54 @@ namespace AnimatedImage
 
                 return true;
             }
+
+            public static bool IsWebPSignature(byte[] signature)
+            {
+                if (signature.Length < 12)
+                    return false;
+
+                // WebP signature
+                // "RIFF" [4 bytes chunksize] "WEBP"
+
+                for (var i = 0; i < WebpHead.Length; ++i)
+                    if (signature[i] != WebpHead[i])
+                        return false;
+
+                for (var i = 8; i < WebpHead2.Length; ++i)
+                    if (signature[i] != WebpHead2[i])
+                        return false;
+
+                return true;
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: Discard managed state (managed object)
+                }
+
+                // TODO: Release unmanaged resources (unmanaged objects) and override finalizers.
+                // TODO: Set large fields to null.
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: Only override the finalizer if the ‘Dispose(bool disposing)’ contains code that releases unmanaged resources.
+        // ~FrameRenderer()
+        // {
+        //     // Do not modify this code. Write cleanup code in the ‘Dispose(bool disposing)’ method.
+        //     Dispose(disposing: false);
+        // }
+
+        void IDisposable.Dispose()
+        {
+            // Do not modify this code. Write cleanup code in the ‘Dispose(bool disposing)’ method.
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
