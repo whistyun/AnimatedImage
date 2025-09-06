@@ -56,17 +56,11 @@ jobs:
           tar -xzf ${{ env.libwebp }}.tar.gz
           mv ${{ env.libwebp }} libwebp
 
-      - name: Test
-        run: apt-cache search aarch64 
-
       - name: Install dependencies
         if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-          sudo apt-get install -y g++-aarch64-linux-gnu
-          sudo apt-get install -y gcc-multilib
-          sudo apt-get install -y g++-multilib
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           sudo apt-get install -y cmake
           sudo apt-get install -y make
           sudo apt-get install -y libjpeg-dev libpng-dev libtiff-dev libgif-dev
