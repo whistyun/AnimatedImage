@@ -151,8 +151,8 @@ jobs:
           cmake --build . --config Release
           cd ..
           mkdir lib-win-${{ matrix.arch }}
-          cp .\build\Release\libwebp.dll        lib-win-${{ matrix.arch }}\
-          cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
+          cp .\build\Release\libwebp.dll      lib-win-${{ matrix.arch }}\
+          cp .\build\Release\libwebpdemux.dll lib-win-${{ matrix.arch }}\          
 
       - name: Cache build result
         if: steps.winlibs.outputs.cache-hit != 'true'
