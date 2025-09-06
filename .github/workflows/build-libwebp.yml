@@ -41,6 +41,7 @@ jobs:
 
       - name: Extracts tar.gz
         run: |
+          cd ~
           tar -xzf libwebp-1.6.0.tar.gz
           Rename-Item libwebp-1.6.0 libwebp
 
