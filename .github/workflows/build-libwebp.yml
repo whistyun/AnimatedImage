@@ -76,13 +76,13 @@ jobs:
           cp build-arm64/libwebpdemux.* lib-arm64/
 
       - name: Upload libwebp for x64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libwebp-linux-x64
           path: lib-x64
 
       - name: Upload libwebp for arm64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libwebp-linux-arm64
           path: lib-arm64
@@ -116,7 +116,7 @@ jobs:
           cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libwebp-windows-${{ matrix.arch }}
           path: lib-win-${{ matrix.arch }}
@@ -143,7 +143,7 @@ jobs:
           cp build-osx/libwebpdemux.* lib-osx/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libwebp-osx
           path: lib-osx
