@@ -73,8 +73,8 @@ jobs:
           make -j$(nproc)
           cd ..
           mkdir lib-linux-x64
-          cp build-x64/libwebp.*      lib-linux-x64/
-          cp build-x64/libwebpdemux.* lib-linux-x64/
+          cp build-x64/*.so.*    lib-linux-x64/
+          cp build-x64/*.so      lib-linux-x64/
 
       - name: Cache build result
         if: steps.linuxX64libs.outputs.cache-hit != 'true'
@@ -98,8 +98,8 @@ jobs:
           make -j$(nproc)
           cd ..
           mkdir lib-linux-arm64
-          cp build-arm64/libwebp.*      lib-linux-arm64/
-          cp build-arm64/libwebpdemux.* lib-linux-arm64/
+          cp build-arm64/*.so.*      lib-linux-arm64/
+          cp build-arm64/*.so        lib-linux-arm64/
 
       - name: Cache build result
         if: steps.linuxArm64libs.outputs.cache-hit != 'true'
@@ -151,8 +151,7 @@ jobs:
           cmake --build . --config Release
           cd ..
           mkdir lib-win-${{ matrix.arch }}
-          cp .\build\Release\libwebp.dll        lib-win-${{ matrix.arch }}\
-          cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
+          cp .\build\Release\*.dll  lib-win-${{ matrix.arch }}\
 
       - name: Cache build result
         if: steps.winlibs.outputs.cache-hit != 'true'
@@ -197,8 +196,7 @@ jobs:
           make -j$(sysctl -n hw.logicalcpu)
           cd ..
           mkdir lib-osx
-          cp build-osx/libwebp.*      lib-osx/
-          cp build-osx/libwebpdemux.* lib-osx/
+          cp build-osx/*.dylib      lib-osx/
 
       - name: Cache build result
         if: steps.osxlibs.outputs.cache-hit != 'true'
