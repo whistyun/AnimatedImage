@@ -35,7 +35,7 @@ jobs:
       - name: Cache extracted source
         uses: actions/cache/restore@v4
         with:
-          path: libwebp-1.6.0.tar.gz
+          path: ~/libwebp-1.6.0.tar.gz
           key: libwebp-source
           enableCrossOsArchive: true
           fail-on-cache-miss: true
