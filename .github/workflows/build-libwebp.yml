@@ -24,7 +24,6 @@ jobs:
           mkdir lib-linux-arm64
           echo "1" > lib-linux-x64/1
           echo "2" > lib-linux-x64/2
-          mkdir lib-linux-arm64
           echo "1" > lib-linux-arm64/1
           echo "2" > lib-linux-arm64/2
 
