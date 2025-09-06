@@ -1,0 +1,149 @@
+name: Build libwebp (Linux arm64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-source:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: libwebp-source
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download and extract libwebp
+        run: |
+          cd ~
+          curl -LO https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
+          tar -xzf libwebp-1.6.0.tar.gz
+          mv libwebp-1.6.0 libwebp
+
+      - name: Cache extracted source
+        uses: actions/cache@v3
+        with:
+          path: libwebp
+          key: libwebp-source
+          enableCrossOsArchive: true
+
+  build-linux:
+    needs: download-source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          sudo apt-get install -y g++-aarch64-linux-gnu
+          sudo apt-get install -y gcc-multilib
+          sudo apt-get install -y g++-multilib
+          sudo apt-get install -y cmake
+          sudo apt-get install -y make
+          sudo apt-get install -y libjpeg-dev libpng-dev libtiff-dev libgif-dev
+
+      - name: Cache extracted source
+        uses: actions/cache@v3
+        with:
+          path: libwebp
+          key: libwebp-source
+
+      - name: Build libwebp for x64
+        run: |
+          cd ~
+          mkdir build-x64 && cd build-x64
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(nproc)
+          cd ~
+          mkdir lib-x64
+          cp build-x64/libwebp.*      lib-x64/
+          cp build-x64/libwebpdemux.* lib-x64/
+
+      - name: Build libwebp for arm64
+        run: |
+          cd ~
+          mkdir build-arm64 && cd build-arm64
+          cmake ../libwebp \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install-arm64 \
+            -DBUILD_SHARED_LIBS=ON
+          make -j$(nproc)
+          cd ~
+          mkdir lib-arm64
+          cp build-arm64/libwebp.*      lib-arm64/
+          cp build-arm64/libwebpdemux.* lib-arm64/
+
+      - name: Upload libwebp for x64
+        uses: actions/upload-artifact@v3
+        with:
+          name: libwebp-linux-x64
+          path: lib-x64
+
+      - name: Upload libwebp for arm64
+        uses: actions/upload-artifact@v3
+        with:
+          name: libwebp-linux-arm64
+          path: lib-arm64
+
+  build-windows:
+    needs: download-source
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, Win32, ARM]
+    steps:
+      - name: Cache extracted source
+        uses: actions/cache@v3
+        with:
+          path: libwebp
+          key: libwebp-source
+
+      - name: Build libwebp
+        run: |
+          cd ~
+          mkdir build && cd build
+          cmake ../libwebp `
+            -DCMAKE_GENERATOR_PLATFORM=${{ matrix.arch }} `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_SHARED_LIBS=ON `
+            -DCMAKE_INSTALL_PREFIX=install-${{ matrix.arch }}
+          cmake --build . --config Release
+          cd ~
+          mkdir lib-win-${{ matrix.arch }}
+          cp .\build\Release\libwebp.dll        lib-win-${{ matrix.arch }}\
+          cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: libwebp-windows-${{ matrix.arch }}
+          path: lib-win-${{ matrix.arch }}
+
+  build-macos:
+    needs: download-source
+    runs-on: macos-latest
+    steps:
+      - name: Cache extracted source
+        uses: actions/cache@v3
+        with:
+          path: libwebp
+          key: libwebp-source
+
+      - name: Build libwebp
+        run: |
+          cd ~
+          mkdir build-osx && cd build-osx
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ~
+          mkdir lib-osx
+          cp build-osx/libwebp.*      lib-osx/
+          cp build-osx/libwebpdemux.* lib-osx/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: libwebp-osx
+          path: lib-osx
