@@ -9,9 +9,6 @@ jobs:
     outputs:
       artifact-name: libwebp-source
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
       - name: Download and extract libwebp
         run: |
           cd ~
@@ -31,10 +28,14 @@ jobs:
       matrix:
         arch: [ARM]
     steps:
+      - name: home directory
+        run: |
+          cd ~
+
       - name: Cache extracted source
         uses: actions/cache/restore@v4
         with:
-          path: ~/libwebp-1.6.0.tar.gz
+          path: libwebp-1.6.0.tar.gz
           key: libwebp-source
           enableCrossOsArchive: true
           fail-on-cache-miss: true
