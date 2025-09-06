@@ -56,6 +56,9 @@ jobs:
           tar -xzf ${{ env.libwebp }}.tar.gz
           mv ${{ env.libwebp }} libwebp
 
+      - name: Test
+        run: apt-cache search aarch64 
+
       - name: Install dependencies
         if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
         run: |
