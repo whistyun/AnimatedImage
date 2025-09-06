@@ -16,13 +16,11 @@ jobs:
         run: |
           cd ~
           curl -LO https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
-          tar -xzf libwebp-1.6.0.tar.gz
-          mv libwebp-1.6.0 libwebp
 
       - name: Cache extracted source
         uses: actions/cache/save@v4
         with:
-          path: ~/libwebp/
+          path: ~/libwebp-1.6.0.tar.gz
           key: libwebp-source
           enableCrossOsArchive: true
 
@@ -31,15 +29,20 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [x64, Win32, ARM]
+        arch: [ARM]
     steps:
       - name: Cache extracted source
         uses: actions/cache/restore@v4
         with:
-          path: ~/libwebp/
+          path: ~/libwebp-1.6.0.tar.gz
           key: libwebp-source
           enableCrossOsArchive: true
           fail-on-cache-miss: true
+
+      - name: Extracts tar.gz
+        run: |
+          tar -xzf libwebp-1.6.0.tar.gz
+          Rename-Item libwebp-1.6.0 libwebp
 
       - name: Build libwebp
         run: |
