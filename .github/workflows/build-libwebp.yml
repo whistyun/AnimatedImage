@@ -38,6 +38,7 @@ jobs:
         with:
           path: ~/libwebp/
           key: libwebp-source
+          enableCrossOsArchive: true
           fail-on-cache-miss: true
 
       - name: Build libwebp
