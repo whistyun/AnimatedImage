@@ -3,20 +3,43 @@ name: Build libwebp
 on:
   workflow_dispatch:
 
+env:
+  webpurl: https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
+  libwebp: libwebp-1.6.0
+
 jobs:
   download-source:
     runs-on: ubuntu-latest
-    outputs:
-      artifact-name: libwebp-source
     steps:
       - name: Download and extract libwebp
-        run: curl -LO https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
+        run:  curl -LO ${{ env.webpurl }}
 
-      - name: Cache extracted source
+  build-linux:
+    needs: download-source
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: |
+          mkdir lib-linux-x64
+          mkdir lib-linux-arm64
+          echo "1" > lib-linux-x64/1
+          echo "2" > lib-linux-x64/2
+          mkdir lib-linux-arm64
+          echo "1" > lib-linux-arm64/1
+          echo "2" > lib-linux-arm64/2
+
+      - name: Cache build result
         uses: actions/cache/save@v4
         with:
-          path: libwebp-1.6.0.tar.gz
-          key: libwebp-source
+          path: lib-linux-x64
+          key:  lib-linux-x64
+          enableCrossOsArchive: true
+
+      - name: Cache build result
+        uses: actions/cache/save@v4
+        with:
+          path: lib-linux-arm64
+          key:  lib-linux-arm64
           enableCrossOsArchive: true
 
   build-windows:
@@ -24,38 +47,107 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [ARM64]
+        arch: [x64, Win32, ARM64]
     steps:
-      - name: Cache extracted source
+      - name: Build libwebp
+        run: |
+          mkdir lib-win-${{ matrix.arch }}
+          echo "1" > lib-win-${{ matrix.arch }}/1
+          echo "2" > lib-win-${{ matrix.arch }}/2
+
+      - name: Cache build result
+        uses: actions/cache/save@v4
+        with:
+          path: lib-win-${{ matrix.arch }}
+          key:  lib-win-${{ matrix.arch }}
+          enableCrossOsArchive: true
+
+  build-macos:
+    needs: download-source
+    runs-on: macos-latest
+    steps:
+      - name: Build libwebp
+        run: |
+          mkdir lib-osx
+          echo "1" > lib-osx/1
+          echo "2" > lib-osx/2
+
+      - name: Cache build result
+        uses: actions/cache/save@v4
+        with:
+          path: lib-osx
+          key:  lib-osx
+          enableCrossOsArchive: true
+
+  package-libs:
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache linux x64 libs
         uses: actions/cache/restore@v4
         with:
-          path: libwebp-1.6.0.tar.gz
-          key: libwebp-source
+          path: lib-linux-x64
+          key:  lib-linux-x64
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
-      - name: Extracts tar.gz
-        run: |
-          dir
-          tar -xzf libwebp-1.6.0.tar.gz
-          Rename-Item libwebp-1.6.0 libwebp
+      - name: Cache linux arm64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-arm64
+          key:  lib-linux-arm64
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
 
-      - name: Build libwebp
+      - name: Cache windows x64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-x64
+          key:  lib-win-x64
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache windows x86 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-Win32
+          key:  lib-win-Win32
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache windows arm64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-ARM64
+          key:  lib-win-ARM64
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache osx libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-osx
+          key:  libwebp-osx
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Collect libs
         run: |
-          mkdir build && cd build
-          cmake ../libwebp `
-            -DCMAKE_GENERATOR_PLATFORM=${{ matrix.arch }} `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DBUILD_SHARED_LIBS=ON `
-            -DCMAKE_INSTALL_PREFIX=install-${{ matrix.arch }}
-          cmake --build . --config Release
-          cd ..
-          mkdir lib-win-${{ matrix.arch }}
-          cp .\build\Release\libwebp.dll        lib-win-${{ matrix.arch }}\
-          cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
+          mkdir libs/linux-x64
+          mkdir libs/linux-arm64
+          mkdir libs/win-x64
+          mkdir libs/win-x86
+          mkdir libs/win-arm64
+          mkdir libs/osx
+          mv lib-linux-x64   libs/linux-x64
+          mv lib-linux-arm64 libs/linux-arm64
+          mv lib-win-x64     libs/win-x64
+          mv lib-win-Win32   libs/win-x86
+          mv lib-win-ARM64   libs/win-arm64
+          mv lib-osx         libs/osx
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libwebp-windows-${{ matrix.arch }}
-          path: lib-win-${{ matrix.arch }}
+          name: libwebp libraries
+          path: libs
