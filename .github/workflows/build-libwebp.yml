@@ -30,14 +30,14 @@ jobs:
       - name: Cache build result
         uses: actions/cache/save@v4
         with:
-          path: lib-linux-x64
+          path: lib-linux-x64/
           key:  lib-linux-x64
           enableCrossOsArchive: true
 
       - name: Cache build result
         uses: actions/cache/save@v4
         with:
-          path: lib-linux-arm64
+          path: lib-linux-arm64/
           key:  lib-linux-arm64
           enableCrossOsArchive: true
 
@@ -57,7 +57,7 @@ jobs:
       - name: Cache build result
         uses: actions/cache/save@v4
         with:
-          path: lib-win-${{ matrix.arch }}
+          path: lib-win-${{ matrix.arch }}/
           key:  lib-win-${{ matrix.arch }}
           enableCrossOsArchive: true
 
@@ -74,7 +74,7 @@ jobs:
       - name: Cache build result
         uses: actions/cache/save@v4
         with:
-          path: lib-osx
+          path: lib-osx/
           key:  lib-osx
           enableCrossOsArchive: true
 
@@ -85,7 +85,7 @@ jobs:
       - name: Cache linux x64 libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-linux-x64
+          path: lib-linux-x64/
           key:  lib-linux-x64
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -93,7 +93,7 @@ jobs:
       - name: Cache linux arm64 libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-linux-arm64
+          path: lib-linux-arm64/
           key:  lib-linux-arm64
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -101,7 +101,7 @@ jobs:
       - name: Cache windows x64 libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-win-x64
+          path: lib-win-x64/
           key:  lib-win-x64
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -109,7 +109,7 @@ jobs:
       - name: Cache windows x86 libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-win-Win32
+          path: lib-win-Win32/
           key:  lib-win-Win32
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -117,7 +117,7 @@ jobs:
       - name: Cache windows arm64 libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-win-ARM64
+          path: lib-win-ARM64/
           key:  lib-win-ARM64
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -125,7 +125,7 @@ jobs:
       - name: Cache osx libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-osx
+          path: lib-osx/
           key:  libwebp-osx
           enableCrossOsArchive: true
           fail-on-cache-miss: true
