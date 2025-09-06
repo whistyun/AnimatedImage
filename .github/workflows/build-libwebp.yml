@@ -14,10 +14,25 @@ jobs:
       - name: Download and extract libwebp
         run:  curl -LO ${{ env.webpurl }}
 
+      - name: Cache extracted source
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
   build-linux:
     needs: download-source
     runs-on: ubuntu-latest
     steps:
+      - name: Cache extracted source
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
       - name: test
         run: |
           mkdir lib-linux-x64
@@ -31,14 +46,14 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: lib-linux-x64/
-          key:  lib-linux-x64
+          key:  lib-linux-x64-${{ env.libwebp }}
           enableCrossOsArchive: true
 
       - name: Cache build result
         uses: actions/cache/save@v4
         with:
           path: lib-linux-arm64/
-          key:  lib-linux-arm64
+          key:  lib-linux-arm64-${{ env.libwebp }}
           enableCrossOsArchive: true
 
   build-windows:
@@ -48,6 +63,14 @@ jobs:
       matrix:
         arch: [x64, Win32, ARM64]
     steps:
+      - name: Cache extracted source
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
       - name: Build libwebp
         run: |
           mkdir lib-win-${{ matrix.arch }}
@@ -58,13 +81,21 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: lib-win-${{ matrix.arch }}/
-          key:  lib-win-${{ matrix.arch }}
+          key:  lib-win-${{ matrix.arch }}-${{ env.libwebp }}
           enableCrossOsArchive: true
 
   build-macos:
     needs: download-source
     runs-on: macos-latest
     steps:
+      - name: Cache extracted source
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
       - name: Build libwebp
         run: |
           mkdir lib-osx
@@ -75,7 +106,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: lib-osx/
-          key:  lib-osx
+          key:  lib-osx-${{ env.libwebp }}
           enableCrossOsArchive: true
 
   package-libs:
@@ -86,7 +117,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: lib-linux-x64/
-          key:  lib-linux-x64
+          key:  lib-linux-x64-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
@@ -94,7 +125,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: lib-linux-arm64/
-          key:  lib-linux-arm64
+          key:  lib-linux-arm64-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
@@ -102,7 +133,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: lib-win-x64/
-          key:  lib-win-x64
+          key:  lib-win-x64-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
@@ -110,7 +141,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: lib-win-Win32/
-          key:  lib-win-Win32
+          key:  lib-win-Win32-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
@@ -118,7 +149,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: lib-win-ARM64/
-          key:  lib-win-ARM64
+          key:  lib-win-ARM64-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
@@ -126,18 +157,13 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: lib-osx/
-          key:  lib-osx
+          key:  lib-osx-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
       - name: Collect libs
         run: |
-          mkdir libs/linux-x64
-          mkdir libs/linux-arm64
-          mkdir libs/win-x64
-          mkdir libs/win-x86
-          mkdir libs/win-arm64
-          mkdir libs/osx
+          mkdir libs
           mv lib-linux-x64   libs/linux-x64
           mv lib-linux-arm64 libs/linux-arm64
           mv lib-win-x64     libs/win-x64
@@ -148,5 +174,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libwebp libraries
-          path: libs
+          name: ${{ env.libwebp }} libraries
+          path: libs/
