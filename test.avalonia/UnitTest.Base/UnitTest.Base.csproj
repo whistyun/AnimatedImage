@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\AnimatedImage.props" />
-  <Import Project="..\UnitTest.props" />
 
   <PropertyGroup>
     <TargetFrameworks>$(WindowsPackageTargetFrameworks)</TargetFrameworks>
@@ -16,6 +15,13 @@
     <Compile Update="Apps\App.axaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="ApprovalTests" Version="5.2.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
   </ItemGroup>
 
   <ItemGroup>

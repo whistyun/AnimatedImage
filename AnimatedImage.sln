@@ -9,7 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoForWpf", "DemoForWpf\De
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0E0CF096-6B3E-4338-9DC7-7A52EE4D4648}"
 	ProjectSection(SolutionItems) = preProject
-		build.cmd = build.cmd
+		AnimatedImage.props = AnimatedImage.props
+		build_testpackage.ps1 = build_testpackage.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimatedImageTest", "AnimatedImageTest\AnimatedImageTest.csproj", "{9CE2D382-8D40-4C2B-8433-1B6D208A8EF8}"

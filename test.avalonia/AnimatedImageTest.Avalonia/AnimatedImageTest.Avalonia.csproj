@@ -32,6 +32,24 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UnitTest.Base\UnitTest.Base.csproj" />
-    <ProjectReference Include="..\..\AnimatedImage.Avalonia\AnimatedImage.Avalonia.csproj" />
+  </ItemGroup>
+
+
+  <PropertyGroup>
+    <TestPackageFolder>../../test_build</TestPackageFolder>
+    <RestoreSources>$(RestoreSources);$(TestPackageFolder)</RestoreSources>
+  </PropertyGroup>
+
+  <Target Name="CreateTestPackage" BeforeTargets="Restore;PrepareForBuild;Build">
+    <ItemGroup>
+      <ExistingPackages Include="$(TestPackageFolder)/*.nupkg" />
+    </ItemGroup>
+    <Exec
+        Condition="'@(ExistingPackages)' == ''"
+        Command="powershell -ExecutionPolicy Bypass -File ../../build_testpackage.ps1" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="AnimatedImage.Avalonia" Version="$(MyProjectVersion)-test*" />
   </ItemGroup>
 </Project>

@@ -12,9 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageVersion>2.0.0</PackageVersion>
+    <MyProjectVersion>2.1.0</MyProjectVersion>
   </PropertyGroup>
 
 </Project>
-
-

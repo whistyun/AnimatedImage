@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AnimatedImage.Formats.WebP
 {
     internal class WebpWrapper
     {
+        #region value & structure
+
         /// <summary>Describes the byte-ordering of packed samples in memory</summary>
         public enum WEBP_CSP_MODE
         {
@@ -138,6 +138,56 @@ namespace AnimatedImage.Formats.WebP
             private IntPtr private_;   // for internal use only.
         };
 
+        #endregion
+
+        #region initialize
+
+        static WebpWrapper()
+        {
+            var asm = Assembly.GetCallingAssembly();
+            var dllDir = Path.GetDirectoryName(asm.Location)!;
+
+#if NETFRAMEWORK
+            if (Environment.Is64BitProcess)
+            {
+                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x64/native/libwebp.dll"), IntPtr.Zero, 0);
+                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x64/native/libwebpdemux.dll"), IntPtr.Zero, 0);
+            }
+            else
+            {
+                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x86/native/libwebp.dll"), IntPtr.Zero, 0);
+                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x86/native/libwebpdemux.dll"), IntPtr.Zero, 0);
+            }
+#elif NETCOREAPP
+            NativeLibrary.SetDllImportResolver(
+                asm,
+                (libnm, requestingAsm, path) =>
+                {
+                    if (libnm != "libwebp" && libnm != "libwebpdemux")
+                    {
+                        return IntPtr.Zero;
+                    }
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        return Environment.Is64BitProcess ?
+                            NativeLibrary.Load(Path.Combine(dllDir, $"runtimes/win-x64/native/{libnm}.dll")) :
+                            NativeLibrary.Load(Path.Combine(dllDir, $"runtimes/win-x86/native/{libnm}.dll"));
+                    }
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        return Environment.Is64BitProcess ?
+                            NativeLibrary.Load(Path.Combine(dllDir, $"runtimes/linux-x64/native/{libnm}.dll")) :
+                            IntPtr.Zero;
+                    }
+                    return IntPtr.Zero;
+                });
+#endif
+        }
+
+        [DllImport("kernel32")]
+        internal extern static IntPtr LoadLibraryEx(string path, IntPtr hFile, int dwFlags);
+
+        #endregion
 
         /// <summary>Should always be called, to initialize a fresh WebPAnimDecoderOptions
         /// structure before modification. Returns false in case of version mismatch.
@@ -151,7 +201,7 @@ namespace AnimatedImage.Formats.WebP
         }
         //[DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderOptionsInitInternal")]
         //private static extern int WebPAnimDecoderOptionsInitInternal_x86(ref WebPAnimDecoderOptions dec_options, int WEBP_DEMUX_ABI_VERSION);
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderOptionsInitInternal")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderOptionsInitInternal")]
         private static extern int WebPAnimDecoderOptionsInitInternal(ref WebPAnimDecoderOptions dec_options, int WEBP_DEMUX_ABI_VERSION);
 
 
@@ -171,7 +221,7 @@ namespace AnimatedImage.Formats.WebP
             WebPAnimDecoder decoder = new WebPAnimDecoder() { decoder = ptr };
             return decoder;
         }
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderNewInternal")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderNewInternal")]
         private static extern IntPtr WebPAnimDecoderNewInternal(ref WebPData webp_data, ref WebPAnimDecoderOptions dec_options, int WEBP_DEMUX_ABI_VERSION);
 
 
@@ -183,7 +233,7 @@ namespace AnimatedImage.Formats.WebP
         {
             return WebPAnimDecoderGetInfoInternal(dec, out info) == 1;
         }
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderGetInfo")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderGetInfo")]
         private static extern int WebPAnimDecoderGetInfoInternal(IntPtr dec, out WebPAnimInfo info);
 
         /// <summary>Check if there are more frames left to decode.</summary>
@@ -196,7 +246,7 @@ namespace AnimatedImage.Formats.WebP
         {
             return WebPAnimDecoderHasMoreFramesInternal(dec) == 1;
         }
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderHasMoreFrames")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderHasMoreFrames")]
         private static extern int WebPAnimDecoderHasMoreFramesInternal(WebPAnimDecoder dec);
 
 
@@ -218,7 +268,7 @@ namespace AnimatedImage.Formats.WebP
         {
             return WebPAnimDecoderGetNextInternal(dec, ref buf, ref timestamp) == 1;
         }
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderGetNext")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderGetNext")]
         private static extern int WebPAnimDecoderGetNextInternal(IntPtr dec, ref IntPtr buf, ref int timestamp);
 
         /// <summary>
@@ -232,7 +282,7 @@ namespace AnimatedImage.Formats.WebP
         {
             WebPAnimDecoderResetInternal(dec);
         }
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderReset")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderReset")]
         private static extern void WebPAnimDecoderResetInternal(WebPAnimDecoder dec);
 
 
@@ -242,7 +292,7 @@ namespace AnimatedImage.Formats.WebP
         {
             WebPAnimDecoderDeleteInternal(decoder);
         }
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderDelete")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderDelete")]
         private static extern void WebPAnimDecoderDeleteInternal(WebPAnimDecoder dec);
 
         /// <summary>
@@ -254,7 +304,7 @@ namespace AnimatedImage.Formats.WebP
         /// </summary>
         /// <param name="dec">(in) decoder instance from which the demuxer object is to be fetched.</param>
         /// <returns></returns>
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderGetDemuxer")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPAnimDecoderGetDemuxer")]
         public static extern IntPtr WebPAnimDecoderGetDemuxer(WebPAnimDecoder dec);
 
         /// <summary>
@@ -274,7 +324,7 @@ namespace AnimatedImage.Formats.WebP
             return WebPDemuxGetFrameInternal(dmux, frame_number, ref iter) != 0;
         }
         /// 
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPDemuxGetFrame")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPDemuxGetFrame")]
         public static extern int WebPDemuxGetFrameInternal(IntPtr dmux, Int32 frame_number, ref WebPIterator iter);
 
         /// <summary>
@@ -288,7 +338,7 @@ namespace AnimatedImage.Formats.WebP
             return WebPDemuxNextFrameInternal(ref iter) == 1;
         }
 
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPDemuxNextFrame")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPDemuxNextFrame")]
         private static extern int WebPDemuxNextFrameInternal(ref WebPIterator iter);
 
 
@@ -299,17 +349,17 @@ namespace AnimatedImage.Formats.WebP
         /// WebPDemuxDelete().
         /// </summary>
         /// <param name="iter"></param>
-        [DllImport("libwebpdemux.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPDemuxReleaseIterator")]
+        [DllImport("libwebpdemux", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPDemuxReleaseIterator")]
         public static extern void WebPDemuxReleaseIterator(ref WebPIterator iter);
 
         internal static IntPtr WebPMalloc(int size)
         {
-             return WebPMalloc_x64(size);
+            return WebPMalloc_x64(size);
         }
-        [DllImport("libwebp.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPMalloc")]
+        [DllImport("libwebp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "WebPMalloc")]
         private static extern IntPtr WebPMalloc_x64(int size);
 
-        [DllImport("libwebp.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libwebp", CallingConvention = CallingConvention.Cdecl)]
         static extern int WebPFree(IntPtr p);
 
 
