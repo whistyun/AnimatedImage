@@ -1,4 +1,4 @@
-name: Build libwebp (Linux arm64)
+name: Build libwebp
 
 on:
   workflow_dispatch:
