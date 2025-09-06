@@ -24,7 +24,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [ARM]
+        arch: [ARM64]
     steps:
       - name: Cache extracted source
         uses: actions/cache/restore@v4
