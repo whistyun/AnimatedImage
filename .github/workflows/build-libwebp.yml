@@ -30,6 +30,13 @@ jobs:
     needs: download-source
     runs-on: ubuntu-latest
     steps:
+      - name: Cache extracted source
+        uses: actions/cache@v3
+        with:
+          path: libwebp
+          key: libwebp-source
+          enableCrossOsArchive: true
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -40,12 +47,6 @@ jobs:
           sudo apt-get install -y cmake
           sudo apt-get install -y make
           sudo apt-get install -y libjpeg-dev libpng-dev libtiff-dev libgif-dev
-
-      - name: Cache extracted source
-        uses: actions/cache@v3
-        with:
-          path: libwebp
-          key: libwebp-source
 
       - name: Build libwebp for x64
         run: |
@@ -99,6 +100,7 @@ jobs:
         with:
           path: libwebp
           key: libwebp-source
+          enableCrossOsArchive: true
 
       - name: Build libwebp
         run: |
@@ -130,6 +132,7 @@ jobs:
         with:
           path: libwebp
           key: libwebp-source
+          enableCrossOsArchive: true
 
       - name: Build libwebp
         run: |
