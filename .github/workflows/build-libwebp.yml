@@ -10,14 +10,12 @@ jobs:
       artifact-name: libwebp-source
     steps:
       - name: Download and extract libwebp
-        run: |
-          cd ~
-          curl -LO https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
+        run: curl -LO https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
 
       - name: Cache extracted source
         uses: actions/cache/save@v4
         with:
-          path: ~/libwebp-1.6.0.tar.gz
+          path: libwebp-1.6.0.tar.gz
           key: libwebp-source
           enableCrossOsArchive: true
 
@@ -28,27 +26,22 @@ jobs:
       matrix:
         arch: [ARM]
     steps:
-      - name: home directory
-        run: |
-          cd ~
-
       - name: Cache extracted source
         uses: actions/cache/restore@v4
         with:
-          path: ~/libwebp-1.6.0.tar.gz
+          path: libwebp-1.6.0.tar.gz
           key: libwebp-source
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
       - name: Extracts tar.gz
         run: |
-          cd ~
+          dir
           tar -xzf libwebp-1.6.0.tar.gz
           Rename-Item libwebp-1.6.0 libwebp
 
       - name: Build libwebp
         run: |
-          cd ~
           mkdir build && cd build
           cmake ../libwebp `
             -DCMAKE_GENERATOR_PLATFORM=${{ matrix.arch }} `
@@ -56,7 +49,7 @@ jobs:
             -DBUILD_SHARED_LIBS=ON `
             -DCMAKE_INSTALL_PREFIX=install-${{ matrix.arch }}
           cmake --build . --config Release
-          cd ~
+          cd ..
           mkdir lib-win-${{ matrix.arch }}
           cp .\build\Release\libwebp.dll        lib-win-${{ matrix.arch }}\
           cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
