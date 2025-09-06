@@ -14,7 +14,7 @@ jobs:
       - name: Download and extract libwebp
         run:  curl -LO ${{ env.webpurl }}
 
-      - name: Cache extracted source
+      - name: Cache source
         uses: actions/cache/save@v4
         with:
           path: ${{ env.libwebp }}.tar.gz
