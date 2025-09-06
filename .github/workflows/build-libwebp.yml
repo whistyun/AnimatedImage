@@ -33,14 +33,47 @@ jobs:
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
-      - name: test
+      - name: Extracts tar.gz
         run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          mv ${{ env.libwebp }} libwebp
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          sudo apt-get install -y g++-aarch64-linux-gnu
+          sudo apt-get install -y gcc-multilib
+          sudo apt-get install -y g++-multilib
+          sudo apt-get install -y cmake
+          sudo apt-get install -y make
+          sudo apt-get install -y libjpeg-dev libpng-dev libtiff-dev libgif-dev
+
+      - name: Build libwebp for x64
+        run: |
+          mkdir build-x64 && cd build-x64
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(nproc)
+          cd ..
           mkdir lib-linux-x64
+          cp build-x64/libwebp.*      lib-linux-x64/
+          cp build-x64/libwebpdemux.* lib-linux-x64/
+
+      - name: Build libwebp for arm64
+        run: |
+          mkdir build-arm64 && cd build-arm64
+          cmake ../libwebp \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install-arm64 \
+            -DBUILD_SHARED_LIBS=ON
+          make -j$(nproc)
+          cd ..
           mkdir lib-linux-arm64
-          echo "1" > lib-linux-x64/1
-          echo "2" > lib-linux-x64/2
-          echo "1" > lib-linux-arm64/1
-          echo "2" > lib-linux-arm64/2
+          cp build-arm64/libwebp.*      lib-linux-arm64/
+          cp build-arm64/libwebpdemux.* lib-linux-arm64/
 
       - name: Cache build result
         uses: actions/cache/save@v4
@@ -71,11 +104,24 @@ jobs:
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
+      - name: Extracts tar.gz
+        run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          Rename-Item ${{ env.libwebp }} libwebp
+
       - name: Build libwebp
         run: |
+          mkdir build && cd build
+          cmake ../libwebp `
+            -DCMAKE_GENERATOR_PLATFORM=${{ matrix.arch }} `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_SHARED_LIBS=ON `
+            -DCMAKE_INSTALL_PREFIX=install-${{ matrix.arch }}
+          cmake --build . --config Release
+          cd ..
           mkdir lib-win-${{ matrix.arch }}
-          echo "1" > lib-win-${{ matrix.arch }}/1
-          echo "2" > lib-win-${{ matrix.arch }}/2
+          cp .\build\Release\libwebp.dll        lib-win-${{ matrix.arch }}\
+          cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
 
       - name: Cache build result
         uses: actions/cache/save@v4
@@ -96,11 +142,20 @@ jobs:
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
+      - name: Extracts tar.gz
+        run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          mv ${{ env.libwebp }} libwebp
+
       - name: Build libwebp
         run: |
+          mkdir build-osx && cd build-osx
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
           mkdir lib-osx
-          echo "1" > lib-osx/1
-          echo "2" > lib-osx/2
+          cp build-osx/libwebp.*      lib-osx/
+          cp build-osx/libwebpdemux.* lib-osx/
 
       - name: Cache build result
         uses: actions/cache/save@v4
