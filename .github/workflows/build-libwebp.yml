@@ -1,0 +1,9 @@
+name: Build libwebp
+on:
+    workflow_dispatch:
+jobs:
+    other-branch-job:
+        runs-on: ubuntu-latest
+        steps:
+            - name: dummy job
+              run: echo "dummy"
