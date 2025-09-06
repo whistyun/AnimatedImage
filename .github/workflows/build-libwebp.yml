@@ -22,9 +22,9 @@ jobs:
       - name: Cache extracted source
         uses: actions/cache/save@v4
         with:
-          path: libwebp
+          path: ~/libwebp/
           key: libwebp-source
-          fail-on-cache-miss: true
+          enableCrossOsArchive: true
 
   build-windows:
     needs: download-source
@@ -36,9 +36,8 @@ jobs:
       - name: Cache extracted source
         uses: actions/cache/restore@v4
         with:
-          path: libwebp
+          path: ~/libwebp/
           key: libwebp-source
-          enableCrossOsArchive: true
           fail-on-cache-miss: true
 
       - name: Build libwebp
