@@ -25,7 +25,24 @@ jobs:
     needs: download-source
     runs-on: ubuntu-latest
     steps:
+      - name: Check linux libs cache
+        id:   linuxX64libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-x64/
+          key:  lib-linux-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Check linux libs cache
+        id:   linuxArm64libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-arm64/
+          key:  lib-linux-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
       - name: Cache extracted source
+        if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.libwebp }}.tar.gz
@@ -34,11 +51,13 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Extracts tar.gz
+        if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
         run: |
           tar -xzf ${{ env.libwebp }}.tar.gz
           mv ${{ env.libwebp }} libwebp
 
       - name: Install dependencies
+        if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu
@@ -50,6 +69,7 @@ jobs:
           sudo apt-get install -y libjpeg-dev libpng-dev libtiff-dev libgif-dev
 
       - name: Build libwebp for x64
+        if: steps.linuxX64libs.outputs.cache-hit != 'true'
         run: |
           mkdir build-x64 && cd build-x64
           cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
@@ -59,7 +79,16 @@ jobs:
           cp build-x64/libwebp.*      lib-linux-x64/
           cp build-x64/libwebpdemux.* lib-linux-x64/
 
+      - name: Cache build result
+        if: steps.linuxX64libs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: lib-linux-x64/
+          key:  lib-linux-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
       - name: Build libwebp for arm64
+        if: steps.linuxArm64libs.outputs.cache-hit != 'true'
         run: |
           mkdir build-arm64 && cd build-arm64
           cmake ../libwebp \
@@ -76,13 +105,7 @@ jobs:
           cp build-arm64/libwebpdemux.* lib-linux-arm64/
 
       - name: Cache build result
-        uses: actions/cache/save@v4
-        with:
-          path: lib-linux-x64/
-          key:  lib-linux-x64-${{ env.libwebp }}
-          enableCrossOsArchive: true
-
-      - name: Cache build result
+        if: steps.linuxArm64libs.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: lib-linux-arm64/
@@ -96,7 +119,16 @@ jobs:
       matrix:
         arch: [x64, Win32, ARM64]
     steps:
+      - name: Check windows libs cache
+        id:   winlibs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-${{ matrix.arch }}/
+          key:  lib-win-${{ matrix.arch }}-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
       - name: Cache extracted source
+        if: steps.winlibs.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.libwebp }}.tar.gz
@@ -105,11 +137,13 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Extracts tar.gz
+        if: steps.winlibs.outputs.cache-hit != 'true'
         run: |
           tar -xzf ${{ env.libwebp }}.tar.gz
           Rename-Item ${{ env.libwebp }} libwebp
 
       - name: Build libwebp
+        if: steps.winlibs.outputs.cache-hit != 'true'
         run: |
           mkdir build && cd build
           cmake ../libwebp `
@@ -124,6 +158,7 @@ jobs:
           cp .\build\Release\libwebpdecoder.dll lib-win-${{ matrix.arch }}\          
 
       - name: Cache build result
+        if: steps.winlibs.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: lib-win-${{ matrix.arch }}/
@@ -134,7 +169,16 @@ jobs:
     needs: download-source
     runs-on: macos-latest
     steps:
+      - name: Check osx libs cache
+        id:   osxlibs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-osx/
+          key:  lib-osx-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
       - name: Cache extracted source
+        if: steps.osxlibs.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.libwebp }}.tar.gz
@@ -143,11 +187,13 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Extracts tar.gz
+        if: steps.osxlibs.outputs.cache-hit != 'true'
         run: |
           tar -xzf ${{ env.libwebp }}.tar.gz
           mv ${{ env.libwebp }} libwebp
 
       - name: Build libwebp
+        if: steps.osxlibs.outputs.cache-hit != 'true'
         run: |
           mkdir build-osx && cd build-osx
           cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
@@ -158,6 +204,7 @@ jobs:
           cp build-osx/libwebpdemux.* lib-osx/
 
       - name: Cache build result
+        if: steps.osxlibs.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: lib-osx/
