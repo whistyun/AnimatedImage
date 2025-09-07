@@ -11,8 +11,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		AnimatedImage.props = AnimatedImage.props
-		.github\workflows\build-libwebp.yml = .github\workflows\build-libwebp.yml
 		build-nativenupkg.ps1 = build-nativenupkg.ps1
+		DockerFile = DockerFile
+		NuGet.config = NuGet.config
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimatedImageTest", "AnimatedImageTest\AnimatedImageTest.csproj", "{9CE2D382-8D40-4C2B-8433-1B6D208A8EF8}"
@@ -27,6 +28,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AnimatedImage.Native", "Ani
 	ProjectSection(SolutionItems) = preProject
 		AnimatedImage.Native\AnimatedImage.Native.nuspec = AnimatedImage.Native\AnimatedImage.Native.nuspec
 		AnimatedImage.Native\AnimatedImage.Native.targets = AnimatedImage.Native\AnimatedImage.Native.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHubAction", "GitHubAction", "{A389E2F3-2953-4989-AFAF-8F7F6885FD32}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build-libwebp.yml = .github\workflows\build-libwebp.yml
+		.github\workflows\test-linux-arm.yml = .github\workflows\test-linux-arm.yml
+		.github\workflows\test-macos.yml = .github\workflows\test-macos.yml
+		.github\workflows\test-windows.yml = .github\workflows\test-windows.yml
 	EndProjectSection
 EndProject
 Global

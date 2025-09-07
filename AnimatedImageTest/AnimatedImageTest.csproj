@@ -3,8 +3,7 @@
   <Import Project="..\AnimatedImage.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(WindowsPackageTargetFrameworks)</TargetFrameworks>
-    <UseWPF>true</UseWPF>
+    <TargetFrameworks>$(PackageTargetFrameworks)</TargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>10</LangVersion>
     <IsPackable>false</IsPackable>
@@ -15,8 +14,10 @@
   <ItemGroup>
     <None Remove="Inputs\*.gif" />
     <None Remove="Inputs\*.png" />
-    <EmbeddedResource Include="Inputs\*.png" />
+    <None Remove="Inputs\*.webp" />
     <EmbeddedResource Include="Inputs\*.gif" />
+    <EmbeddedResource Include="Inputs\*.png" />
+    <EmbeddedResource Include="Inputs\*.webp" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,11 +26,21 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
     <PackageReference Include="coverlet.collector" Version="3.1.2" />
+
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" />
-    <ProjectReference Include="..\AnimatedImage.Wpf\AnimatedImage.Wpf.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Outputs\**\*.approved.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AnimatedImage.Native" Version="*-*"/>
+  </ItemGroup>
 </Project>

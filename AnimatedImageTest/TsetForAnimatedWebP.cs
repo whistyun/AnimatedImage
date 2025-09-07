@@ -1,28 +1,22 @@
-﻿using NUnit.Framework;
+﻿using AnimatedImage;
+using AnimatedImage.Formats;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using AnimatedImage.Formats.Png;
-using AnimatedImage.Formats;
-using AnimatedImage;
 
 namespace AnimatedImageTest
 {
-    public class TestForAnimatedPNG
+    public class TsetForAnimatedWebP
     {
         [Test]
-        [TestCase("BouncingBeachBall.png")]
-        [TestCase("GrayscaleBouncingBeachBall.png")]
-        [TestCase("GrayscaleMatteBouncingBeachBall.png")]
-        [TestCase("PaletteBouncingBeachBall.png")]
-        [TestCase("NonAlphaBouncingBeachBall.png")]
+        [TestCase("BouncingBeachBallWebP.webp")]
         public void Sequence(string filename)
         {
             var imageStream = Open(filename);
-            var pngfile = new ApngFile(imageStream);
-            var renderer = new PngRenderer(pngfile, new BitmapFaceFactory());
+            var renderer = new WebpRenderer(imageStream, new BitmapFaceFactory());
 
             for (int i = 0; i < renderer.FrameCount; ++i)
             {
@@ -38,12 +32,11 @@ namespace AnimatedImageTest
         }
 
         [Test]
-        [TestCase("BouncingBeachBall.png")]
+        [TestCase("BouncingBeachBallWebP.webp")]
         public void Jump(string filename)
         {
             var imageStream = Open(filename);
-            var pngfile = new ApngFile(imageStream);
-            var renderer = new PngRenderer(pngfile, new BitmapFaceFactory());
+            var renderer = new WebpRenderer(imageStream, new BitmapFaceFactory());
 
             var indics = new List<int>();
 

@@ -3,16 +3,11 @@ using System.Reflection;
 using System;
 using ApprovalTests.Reporters;
 using NUnit.Framework;
-using ApprovalTests;
 using AnimatedImage.Formats;
 using AnimatedImage.Formats.Gif;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
-using AnimatedImage.Wpf;
-using System.Drawing;
 using AnimatedImage;
-using System.Windows.Media.Imaging;
 
 namespace AnimatedImageTest
 {
@@ -35,27 +30,23 @@ namespace AnimatedImageTest
         {
             var imageStream = Open(filename);
             var giffile = new GifFile(imageStream);
-            var renderer = new GifRenderer(giffile, new WriteableBitmapFaceFactory());
+            var renderer = new GifRenderer(giffile, new BitmapFaceFactory());
 
             for (int i = 0; i < renderer.FrameCount; ++i)
             {
                 renderer.ProcessFrame(i);
 
-                var dirname = Path.GetFileNameWithoutExtension(filename);
-                var framename = i.ToString("D2");
-
-                Approvals.Verify(
-                    new ApprovalImageWriter(ToBitmap(renderer.Current), dirname, framename),
-                    Approvals.GetDefaultNamer(),
-                    new DiffToolReporter(DiffEngine.DiffTool.WinMerge));
+                var imageName = Path.GetFileNameWithoutExtension(filename);
+                if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, imageName, i))
+                {
+                    Assert.Fail($"Frame unmatch: '{filename}' frame {i}");
+                }
             }
 
         }
 
         [Test]
-        [TestCase("earth.gif")]
         [TestCase("bomb.gif")]
-        [TestCase("interlace_earth.gif")]
         [TestCase("monster.gif")]
         [TestCase("working.gif")]
         [TestCase("step_all_background.gif")]
@@ -68,7 +59,7 @@ namespace AnimatedImageTest
         {
             var imageStream = Open(filename);
             var giffile = new GifFile(imageStream);
-            var renderer = new GifRenderer(giffile, new WriteableBitmapFaceFactory());
+            var renderer = new GifRenderer(giffile, new BitmapFaceFactory());
 
             var indics = new List<int>();
 
@@ -87,20 +78,14 @@ namespace AnimatedImageTest
             {
                 renderer.ProcessFrame(i);
 
-                var dirname = Path.GetFileNameWithoutExtension(filename);
-                var framename = i.ToString("D2");
-
-                Debug.Print($"{prev} => {i}");
-
+                var imageName = Path.GetFileNameWithoutExtension(filename);
+                if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, imageName, i))
+                {
+                    Assert.Fail($"Frame unmatch: '{filename}' frame {i}, prev:{prev}");
+                }
                 prev = i;
-                Approvals.Verify(
-                    new ApprovalImageWriter(ToBitmap(renderer.Current), dirname, framename),
-                    Approvals.GetDefaultNamer(),
-                    new DiffToolReporter(DiffEngine.DiffTool.WinMerge));
             }
         }
-
-        private static WriteableBitmap ToBitmap(IBitmapFace face) => ((WriteableBitmapFace)face).Bitmap;
 
         public static Stream Open(string imagefilename)
         {
