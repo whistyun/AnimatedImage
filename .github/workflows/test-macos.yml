@@ -18,7 +18,6 @@ jobs:
 
       - name: Run tests
         run: |
-          dotnet restore
           dotnet restore AnimatedImageTest/AnimatedImageTest.csproj
           dotnet build   AnimatedImageTest/AnimatedImageTest.csproj
           dotnet test    AnimatedImageTest/AnimatedImageTest.csproj
