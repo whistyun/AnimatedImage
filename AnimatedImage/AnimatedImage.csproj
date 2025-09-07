@@ -32,8 +32,4 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or  '$(TargetFramework)' == 'netcoreapp3.1' ">
     <PackageReference Include="SharpCompress" Version="$(SharpCompressVersion)" />
   </ItemGroup>
-
-  <Target Name="CreateTestPackage" BeforeTargets="Restore;PrepareForBuild;Build">
-    <Exec Command="powershell -ExecutionPolicy Bypass -File ../build-nativenupkg.ps1 test" />
-  </Target>
 </Project>

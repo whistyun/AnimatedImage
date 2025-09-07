@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestPackageFolderName>.tmp_build</TestPackageFolderName>
+    <TestPackageFolderName>nativenupkg</TestPackageFolderName>
     <TestPackageFolder>$(MSBuildStartupDirectory)/$(TestPackageFolderName)</TestPackageFolder>
   </PropertyGroup>
 </Project>
