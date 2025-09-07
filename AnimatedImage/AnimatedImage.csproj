@@ -16,8 +16,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(PackageTargetFrameworks)</TargetFrameworks>
     <Version>$(MyProjectVersion)</Version>
-    <Description>A library to display animated GIF images and PNG images</Description>
-    <Title>Animated GIF &amp; PNG</Title>
+    <Description>A library to display animated GIF, PNG and WebP images</Description>
+    <Title>Animated GIF &amp; PNG &amp; WebP</Title>
     <Authors>Thomas Levesque, whistyun</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -33,20 +33,7 @@
     <PackageReference Include="SharpCompress" Version="$(SharpCompressVersion)" />
   </ItemGroup>
 
-
-  <ItemGroup>
-    <None Include="runtimes\win-x86\native\*"   Pack="true" PackagePath="runtimes/win-x86/native" />
-    <None Include="runtimes\win-x64\native\*"   Pack="true" PackagePath="runtimes/win-x64/native" />
-    <None Include="runtimes\linux-x64\native\*" Pack="true" PackagePath="runtimes/linux-x64/native" />
-  </ItemGroup>
-
-  <Target Name="CopyNativeLibs" AfterTargets="Build">
-    <ItemGroup>
-      <NativeLibs Include="$(MSBuildThisFileDirectory)\runtimes\**\native\*.*" />
-    </ItemGroup>
-    <Copy
-      SourceFiles="@(NativeLibs)"
-      DestinationFolder="$(OutputPath)runtimes\%(NativeLibs.RecursiveDir)\native\"
-      SkipUnchangedFiles="true" />
+  <Target Name="CreateTestPackage" BeforeTargets="Restore;PrepareForBuild;Build">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File ../build-nativenupkg.ps1 test" />
   </Target>
 </Project>

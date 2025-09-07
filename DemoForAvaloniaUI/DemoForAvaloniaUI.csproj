@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\AnimatedImage.props" />
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
@@ -27,23 +30,11 @@
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
 
-  <Import Project="..\AnimatedImage.props" />
-
-  <PropertyGroup>
-    <TestPackageFolder>../test_build</TestPackageFolder>
-    <RestoreSources>$(RestoreSources);$(TestPackageFolder)</RestoreSources>
-  </PropertyGroup>
-
-  <Target Name="CreateTestPackage" BeforeTargets="Restore;PrepareForBuild;Build">
-    <ItemGroup>
-      <ExistingPackages Include="$(TestPackageFolder)/*.nupkg" />
-    </ItemGroup>
-    <Exec
-        Condition="'@(ExistingPackages)' == ''"
-        Command="powershell -ExecutionPolicy Bypass -File ../build_testpackage.ps1" />
-  </Target>
+  <ItemGroup>
+    <ProjectReference Include="..\AnimatedImage.Avalonia\AnimatedImage.Avalonia.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AnimatedImage.Avalonia" Version="$(MyProjectVersion)-test*" />
+    <PackageReference Include="AnimatedImage.Native" Version="*-*"/>
   </ItemGroup>
 </Project>

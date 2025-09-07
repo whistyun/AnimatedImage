@@ -28,8 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AnimatedImage.Wpf\AnimatedImage.Wpf.csproj" />
     <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" />
+    <ProjectReference Include="..\AnimatedImage.Wpf\AnimatedImage.Wpf.csproj" />
   </ItemGroup>
 
 </Project>

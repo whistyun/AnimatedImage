@@ -15,8 +15,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(PackageTargetFrameworks)</TargetFrameworks>
     <Version>$(MyProjectVersion)</Version>
-    <Description>A library to display animated GIF images and PNG images in AvaloniaUI</Description>
-    <Title>Animated GIF &amp; PNG in AvaloniaUI</Title>
+    <Description>A library to display animated GIF, PNG and WebP images in AvaloniaUI</Description>
+    <Title>Animated GIF &amp; PNG &amp; WebP in AvaloniaUI</Title>
     <Authors>Thomas Levesque, whistyun</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -27,7 +27,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj"/>
+    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,4 +40,14 @@
   <ItemGroup>
     <None Include="..\pack_readme\AnimatedImage.Avalonia.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!-- see https://stackoverflow.com/questions/41979310/including-referenced-project-dlls-in-nuget-package-net-core-rc3-csproj-file -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 </Project>

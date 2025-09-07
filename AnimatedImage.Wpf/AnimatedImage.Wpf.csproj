@@ -16,8 +16,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(WindowsPackageTargetFrameworks)</TargetFrameworks>
     <Version>$(MyProjectVersion)</Version>
-    <Description>A library to display animated GIF images and PNG images in WPF</Description>
-    <Title>Animated GIF &amp; PNG in WPF</Title>
+    <Description>A library to display animated GIF, PNG and WebP images in WPF</Description>
+    <Title>Animated GIF &amp; PNG &amp; WebP in WPF</Title>
     <Authors>Thomas Levesque, whistyun</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj"/>
+    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or  '$(TargetFramework)' == 'netcoreapp3.1' ">
@@ -41,4 +41,14 @@
   <ItemGroup>
     <InternalsVisibleTo Include="AnimatedImageTest" PublicKey="0024000004800000940000000602000000240000525341310004000001000100516f9b436d278578080993182e4c7b1338cfbdb9eae30a9e155bb58e2ec237fecbf91edfaa60cbbe700bca39af63ffc1d295b07e726eb233f55522e3ac6f9b3587d1176018803140bdd297b3f5e991482dee5aac6dffeecbadeece24fecd6f7ca8249fd6ecf8f2210541aaf6a6a0103afd0ad4f835cb64b55158f9e8a87303b3" />
   </ItemGroup>
+
+  <!-- see https://stackoverflow.com/questions/41979310/including-referenced-project-dlls-in-nuget-package-net-core-rc3-csproj-file -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 </Project>

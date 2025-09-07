@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace AnimatedImage.Formats.WebP
 {
@@ -150,13 +151,15 @@ namespace AnimatedImage.Formats.WebP
 #if NETFRAMEWORK
             if (Environment.Is64BitProcess)
             {
-                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x64/native/libwebp.dll"), IntPtr.Zero, 0);
-                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x64/native/libwebpdemux.dll"), IntPtr.Zero, 0);
+                Load(Path.Combine(dllDir, "runtimes/win-x64/native/libsharpyuv.dll"));
+                Load(Path.Combine(dllDir, "runtimes/win-x64/native/libwebp.dll"));
+                Load(Path.Combine(dllDir, "runtimes/win-x64/native/libwebpdemux.dll"));
             }
             else
             {
-                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x86/native/libwebp.dll"), IntPtr.Zero, 0);
-                LoadLibraryEx(Path.Combine(dllDir, "runtimes/win-x86/native/libwebpdemux.dll"), IntPtr.Zero, 0);
+                Load(Path.Combine(dllDir, "runtimes/win-x86/native/libsharpyuv.dll"));
+                Load(Path.Combine(dllDir, "runtimes/win-x86/native/libwebp.dll"));
+                Load(Path.Combine(dllDir, "runtimes/win-x86/native/libwebpdemux.dll"));
             }
 #elif NETCOREAPP
             NativeLibrary.SetDllImportResolver(
@@ -184,8 +187,20 @@ namespace AnimatedImage.Formats.WebP
 #endif
         }
 
-        [DllImport("kernel32")]
-        internal extern static IntPtr LoadLibraryEx(string path, IntPtr hFile, int dwFlags);
+#if NETFRAMEWORK
+        private static void Load(string dllpath)
+        {
+            IntPtr Handle = LoadLibrary(Path.GetFullPath(dllpath));
+            if (Handle == IntPtr.Zero)
+            {
+                int errorCode = Marshal.GetLastWin32Error();
+                throw new Exception(string.Format("Failed to load library (ErrorCode: {0})", errorCode));
+            }
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr LoadLibrary(string libname);
+#endif
 
         #endregion
 

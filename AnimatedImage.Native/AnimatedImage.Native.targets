@@ -1,0 +1,11 @@
+<Project>
+  <Target Name="CopyNativeLibsForCore" AfterTargets="Build">
+    <ItemGroup>
+      <NativeLibs Include="$(MSBuildThisFileDirectory)..\runtimes\**\*.*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(NativeLibs)"
+      DestinationFolder="$(OutputPath)\runtimes\%(RecursiveDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>
