@@ -1,10 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
 
 WORKDIR src/
 COPY . .
-
-RUN apt-cache search dotnet
-RUN apt-get install -y dotnet-sdk-9.0
 
 RUN dotnet restore
 RUN dotnet test AnimatedImageTest/AnimatedImageTest.csproj
