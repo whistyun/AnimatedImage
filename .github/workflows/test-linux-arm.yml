@@ -26,7 +26,7 @@ jobs:
           docker buildx build \
             --platform ${{ matrix.platform }} \
             --file Dockerfile \
-            --output type=cache \
+            --output type=docker  \
             .
       - name: test
         run: |
