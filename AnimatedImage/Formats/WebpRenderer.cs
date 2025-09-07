@@ -16,7 +16,7 @@ namespace AnimatedImage.Formats
 {
     internal class WebpRenderer : FrameRenderer
     {
-
+        public static bool CheckSupport() => WebpWrapper.CheckSupport();
 
         private readonly WebpRendererFrame[] _frames;
         private IBitmapFaceFactory _factory;
@@ -31,6 +31,11 @@ namespace AnimatedImage.Formats
 
         public WebpRenderer(Stream stream, IBitmapFaceFactory factory)
         {
+            if (!CheckSupport())
+            {
+                throw new InvalidOperationException("AnimatedImage.Native required");
+            }
+
             _rawWebp = stream.ReadBytes((int)stream.Length);
             InitWebp(_rawWebp);
 

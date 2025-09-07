@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -143,63 +145,107 @@ namespace AnimatedImage.Formats.WebP
 
         #region initialize
 
-        static WebpWrapper()
+        private static bool? _checkSupport;
+        public static bool CheckSupport()
         {
-            var asm = Assembly.GetCallingAssembly();
-            var dllDir = Path.GetDirectoryName(asm.Location)!;
-
-#if NETFRAMEWORK
-            if (Environment.Is64BitProcess)
+            if (!_checkSupport.HasValue)
             {
-                Load(Path.Combine(dllDir, "runtimes/win-x64/native/libsharpyuv.dll"));
-                Load(Path.Combine(dllDir, "runtimes/win-x64/native/libwebp.dll"));
-                Load(Path.Combine(dllDir, "runtimes/win-x64/native/libwebpdemux.dll"));
+                _checkSupport = PrivateCheckSupport();
             }
-            else
-            {
-                Load(Path.Combine(dllDir, "runtimes/win-x86/native/libsharpyuv.dll"));
-                Load(Path.Combine(dllDir, "runtimes/win-x86/native/libwebp.dll"));
-                Load(Path.Combine(dllDir, "runtimes/win-x86/native/libwebpdemux.dll"));
-            }
-#elif NETCOREAPP
-            NativeLibrary.SetDllImportResolver(
-                asm,
-                (libnm, requestingAsm, path) =>
-                {
-                    if (libnm != "libwebp" && libnm != "libwebpdemux")
-                    {
-                        return IntPtr.Zero;
-                    }
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        return Environment.Is64BitProcess ?
-                            NativeLibrary.Load(Path.Combine(dllDir, $"runtimes/win-x64/native/{libnm}.dll")) :
-                            NativeLibrary.Load(Path.Combine(dllDir, $"runtimes/win-x86/native/{libnm}.dll"));
-                    }
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    {
-                        return Environment.Is64BitProcess ?
-                            NativeLibrary.Load(Path.Combine(dllDir, $"runtimes/linux-x64/native/{libnm}.dll")) :
-                            IntPtr.Zero;
-                    }
-                    return IntPtr.Zero;
-                });
-#endif
+            return _checkSupport.Value;
         }
 
 #if NETFRAMEWORK
-        private static void Load(string dllpath)
+
+        private static bool PrivateCheckSupport()
         {
-            IntPtr Handle = LoadLibrary(Path.GetFullPath(dllpath));
-            if (Handle == IntPtr.Zero)
+            var asm = Assembly.GetCallingAssembly();
+            var asmDir = Path.GetDirectoryName(asm.Location)!;
+            var dllDir =
+                    Environment.Is64BitProcess ?
+                        Path.Combine(asmDir, "runtimes/win-x64/native") :
+                        Path.Combine(asmDir, "runtimes/win-x86/native");
+
+            var nativeDlls = new[] { "libsharpyuv.dll", "libwebp.dll", "libwebpdemux.dll" };
+            foreach (var nativeDll in nativeDlls)
             {
-                int errorCode = Marshal.GetLastWin32Error();
-                throw new Exception(string.Format("Failed to load library (ErrorCode: {0})", errorCode));
+                var dllPath = Path.Combine(dllDir, nativeDll);
+                if (!File.Exists(dllPath))
+                {
+                    Debug.Print("AnimatedImage.Formats.WebP: libwebp not founds. Please add AnimatedImage.Native to read WebP");
+                    return false;
+                }
+
+                if (LoadLibrary(Path.GetFullPath(dllPath)) == IntPtr.Zero)
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw new Exception(string.Format("Failed to load library (ErrorCode: {0})", errorCode));
+                }
             }
+
+            return true;
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr LoadLibrary(string libname);
+
+#elif NETCOREAPP
+        private static bool PrivateCheckSupport()
+        {
+            var asm = Assembly.GetCallingAssembly();
+            var asmDir = Path.GetDirectoryName(asm.Location)!;
+
+            var dllDir =
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                        RuntimeInformation.ProcessArchitecture switch
+                        {
+                            Architecture.X86 => Path.Combine(asmDir, "runtimes/win-x86/native/"),
+                            Architecture.X64 => Path.Combine(asmDir, "runtimes/win-x64/native/"),
+                            Architecture.Arm64 => Path.Combine(asmDir, "runtimes/win-arm64/native/"),
+                            _ => null
+                        } :
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
+                        RuntimeInformation.ProcessArchitecture switch
+                        {
+                            Architecture.X64 => Path.Combine(asmDir, "runtimes/linux-x64/native/"),
+                            Architecture.Arm64 => Path.Combine(asmDir, "runtimes/linux-arm64/native/"),
+                            _ => null
+                        } :
+                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
+                        RuntimeInformation.ProcessArchitecture switch
+                        {
+                            Architecture.X64 => Path.Combine(asmDir, "runtimes/osx/native/"),
+                            _ => null
+                        } :
+                        null;
+
+            if (dllDir is null)
+            {
+                Debug.Print("AnimatedImage.Formats.WebP: Unsupport platforms");
+                return false;
+            }
+
+            if (Directory.EnumerateFiles(dllDir, "libwebpdemux.*").FirstOrDefault() is null)
+            {
+                Debug.Print("AnimatedImage.Formats.WebP: libwebp not founds. Please add AnimatedImage.Native to read WebP");
+                return false;
+            }
+
+            NativeLibrary.SetDllImportResolver(
+                    Assembly.GetCallingAssembly(),
+                    (libnm, requestingAsm, path) =>
+                    {
+                        var dllfile = Directory.GetFiles(dllDir, libnm + ".*")
+                                               .OrderBy(s => s.Length)
+                                               .FirstOrDefault();
+
+                        return dllfile is not null ?
+                                    NativeLibrary.Load(dllfile) :
+                                    IntPtr.Zero;
+                    });
+
+            return true;
+        }
 #endif
 
         #endregion
