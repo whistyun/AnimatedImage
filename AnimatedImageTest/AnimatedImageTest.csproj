@@ -28,6 +28,7 @@
     <PackageReference Include="coverlet.collector" Version="3.1.2" />
 
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
   </ItemGroup>
 
   <ItemGroup>
