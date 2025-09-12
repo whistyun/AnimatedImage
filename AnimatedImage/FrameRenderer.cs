@@ -129,7 +129,7 @@ namespace AnimatedImage
                 return true;
             }
 
-            if (WebpRenderer.CheckSupport() && Signature.IsWebPSignature(magic))
+            if (Signature.IsWebPSignature(magic) && WebpRenderer.CheckSupport())
             {
                 renderer = new WebpRenderer(stream, factory);
                 return true;

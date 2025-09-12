@@ -179,7 +179,12 @@ namespace AnimatedImage.Formats.WebP
                 if (LoadLibrary(Path.GetFullPath(dllPath)) == IntPtr.Zero)
                 {
                     int errorCode = Marshal.GetLastWin32Error();
-                    throw new Exception(string.Format("Failed to load library (ErrorCode: {0})", errorCode));
+
+                    var errMsg = string.Format("Failed to load library (ErrorCode: {0})", errorCode);
+                    if(Debugger.IsAttached){
+                        throw new Exception(errMsg);
+                    }
+                    return false;
                 }
             }
 
@@ -195,6 +200,7 @@ namespace AnimatedImage.Formats.WebP
             var asm = Assembly.GetCallingAssembly();
             var asmDir = Path.GetDirectoryName(asm.Location)!;
 
+            var arch = RuntimeInformation.ProcessArchitecture;
             var dllDir =
                     RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                         RuntimeInformation.ProcessArchitecture switch
@@ -202,22 +208,22 @@ namespace AnimatedImage.Formats.WebP
                             Architecture.X86 => Path.Combine(asmDir, "runtimes/win-x86/native/"),
                             Architecture.X64 => Path.Combine(asmDir, "runtimes/win-x64/native/"),
                             Architecture.Arm64 => Path.Combine(asmDir, "runtimes/win-arm64/native/"),
-                            _ => null
+                            _ => Failed("AnimatedImage.Formats.WebP: [windows] unsupport architecture " + arch)
                         } :
                     RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
                         RuntimeInformation.ProcessArchitecture switch
                         {
                             Architecture.X64 => Path.Combine(asmDir, "runtimes/linux-x64/native/"),
                             Architecture.Arm64 => Path.Combine(asmDir, "runtimes/linux-arm64/native/"),
-                            _ => null
+                            _ => Failed("AnimatedImage.Formats.WebP: [linux] unsupport architecture " + arch)
                         } :
                     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
                         RuntimeInformation.ProcessArchitecture switch
                         {
                             Architecture.X64 => Path.Combine(asmDir, "runtimes/osx/native/"),
-                            _ => null
+                            _ => Failed("AnimatedImage.Formats.WebP: [osx] unsupport architecture " + arch)
                         } :
-                        null;
+                        Failed("AnimatedImage.Formats.WebP: unsupport platform " + RuntimeInformation.OSDescription);
 
             if (dllDir is null)
             {
@@ -231,18 +237,35 @@ namespace AnimatedImage.Formats.WebP
                 return false;
             }
 
-            NativeLibrary.SetDllImportResolver(
-                    Assembly.GetCallingAssembly(),
-                    (libnm, requestingAsm, path) =>
-                    {
-                        var dllfile = Directory.GetFiles(dllDir, libnm + ".*")
-                                               .OrderBy(s => s.Length)
-                                               .FirstOrDefault();
+            var nativeDlls = new[] { "libsharpyuv", "libwebp", "libwebpdemux" };
+            foreach (var libnm in nativeDlls)
+            {
+                var dllfile = Directory.GetFiles(dllDir, libnm + ".*")
+                                       .OrderBy(s => s.Length)
+                                       .FirstOrDefault();
 
-                        return dllfile is not null ?
-                                    NativeLibrary.Load(dllfile) :
-                                    IntPtr.Zero;
-                    });
+                if (dllfile is null)
+                {
+                    Debug.Print($"AnimatedImage.Formats.WebP: {libnm} not founds. Please add AnimatedImage.Native to read WebP");
+                    return false;
+                }
+
+                try
+                {
+                    NativeLibrary.Load(dllfile);
+                }
+                catch
+                {
+                    if (Debugger.IsAttached) throw;
+                    return false;
+                }
+            }
+
+            static string? Failed(string msg)
+            {
+                Debug.Print(msg);
+                return null;
+            }
 
             return true;
         }
