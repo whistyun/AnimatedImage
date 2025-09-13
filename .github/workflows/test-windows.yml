@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     name: Windows ${{ matrix.arch }} Test
-    runs-on: windows-latest
+    runs-on: [windows-latest, windows-11-arm]
     strategy:
       matrix:
         arch: [x86, x64]
