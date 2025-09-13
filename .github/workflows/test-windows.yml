@@ -7,7 +7,7 @@ on:
 
 jobs:
   test-arm:
-    name: Windows Arm Test
+    name: Windows Arm Test (${{ matrix.frm }})
     runs-on: windows-11-arm
     strategy:
       matrix:
@@ -29,7 +29,7 @@ jobs:
 
 
   test-x:
-    name: Windows ${{ matrix.arch }} Test
+    name: Windows ${{ matrix.arch }} Test (${{ matrix.frm }})
     runs-on: windows-latest
     strategy:
       matrix:
