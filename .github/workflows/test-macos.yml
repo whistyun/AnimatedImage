@@ -1,9 +1,26 @@
 name: Test Mac
+
 on:
-    workflow_dispatch:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+
 jobs:
-    other-branch-job:
-        runs-on: ubuntu-latest
-        steps:
-            - name: dummy job
-              run: echo "dummy"
+  test-osx:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run:  dotnet restore AnimatedImageTest/AnimatedImageTest.csproj
+
+      - name: Build
+        run:  dotnet build AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
+
+      - name: Test
+        run: dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0

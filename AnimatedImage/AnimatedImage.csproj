@@ -15,9 +15,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(PackageTargetFrameworks)</TargetFrameworks>
-    <Version>$(PackageVersion)</Version>
-    <Description>A library to display animated GIF images and PNG images</Description>
-    <Title>Animated GIF &amp; PNG</Title>
+    <Version>$(MyProjectVersion)</Version>
+    <Description>A library to display animated GIF, PNG and WebP images</Description>
+    <Title>Animated GIF &amp; PNG &amp; WebP</Title>
     <Authors>Thomas Levesque, whistyun</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -31,8 +31,5 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or  '$(TargetFramework)' == 'netcoreapp3.1' ">
     <PackageReference Include="SharpCompress" Version="$(SharpCompressVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>

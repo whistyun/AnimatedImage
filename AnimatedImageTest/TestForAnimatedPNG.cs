@@ -1,17 +1,11 @@
-﻿using ApprovalTests.Reporters;
-using ApprovalTests;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using AnimatedImage.Formats.Png;
 using AnimatedImage.Formats;
-using AnimatedImage.Wpf;
-using System.Windows.Media.Imaging;
 using AnimatedImage;
 
 namespace AnimatedImageTest
@@ -28,19 +22,17 @@ namespace AnimatedImageTest
         {
             var imageStream = Open(filename);
             var pngfile = new ApngFile(imageStream);
-            var renderer = new PngRenderer(pngfile, new WriteableBitmapFaceFactory());
+            var renderer = new PngRenderer(pngfile, new BitmapFaceFactory());
 
             for (int i = 0; i < renderer.FrameCount; ++i)
             {
                 renderer.ProcessFrame(i);
 
-                var dirname = Path.GetFileNameWithoutExtension(filename);
-                var framename = i.ToString("D2");
-
-                Approvals.Verify(
-                    new ApprovalImageWriter(ToBitmap(renderer.Current), dirname, framename),
-                    Approvals.GetDefaultNamer(),
-                    new DiffToolReporter(DiffEngine.DiffTool.WinMerge));
+                var imageName = Path.GetFileNameWithoutExtension(filename);
+                if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, imageName, i))
+                {
+                    Assert.Fail($"Frame unmatch: '{filename}' frame {i}");
+                }
             }
 
         }
@@ -51,7 +43,7 @@ namespace AnimatedImageTest
         {
             var imageStream = Open(filename);
             var pngfile = new ApngFile(imageStream);
-            var renderer = new PngRenderer(pngfile, new WriteableBitmapFaceFactory());
+            var renderer = new PngRenderer(pngfile, new BitmapFaceFactory());
 
             var indics = new List<int>();
 
@@ -68,17 +60,13 @@ namespace AnimatedImageTest
             {
                 renderer.ProcessFrame(i);
 
-                var dirname = Path.GetFileNameWithoutExtension(filename);
-                var framename = i.ToString("D2");
-
-                Approvals.Verify(
-                    new ApprovalImageWriter(ToBitmap(renderer.Current), dirname, framename),
-                    Approvals.GetDefaultNamer(),
-                    new DiffToolReporter(DiffEngine.DiffTool.WinMerge));
+                var imageName = Path.GetFileNameWithoutExtension(filename);
+                if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, imageName, i))
+                {
+                    Assert.Fail($"Frame unmatch: '{filename}' frame {i}");
+                }
             }
         }
-
-        private static WriteableBitmap ToBitmap(IBitmapFace face) => ((WriteableBitmapFace)face).Bitmap;
 
         public static Stream Open(string imagefilename)
         {

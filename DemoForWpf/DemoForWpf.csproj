@@ -1,9 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <Import Project="..\AnimatedImage.props" />
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows7.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetFrameworks>net462;net9.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -25,5 +26,12 @@
     <Resource Include="Images\play.png" />
     <Resource Include="Images\radar.gif" />
     <Resource Include="Images\working.gif" />
+    <Resource Include="images/stickman.webp" />
+    <Resource Include="images/nonanimated.webp" />
+    <Resource Include="images/nonanimated_lossless.webp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AnimatedImage.Native" Version="*-*"/>
   </ItemGroup>
 </Project>

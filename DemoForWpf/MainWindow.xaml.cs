@@ -30,6 +30,9 @@ namespace DemoForWpf
                           "pack://application:,,,/images/nonanimated.gif",
                           "pack://application:,,,/images/nonanimated.png",
                           "pack://application:,,,/images/UnsupportImageFormat.bmp",
+                          "pack://application:,,,/images/stickman.webp",
+                          "pack://application:,,,/images/nonanimated.webp",
+                          "pack://application:,,,/images/nonanimated_lossless.webp",
                           "pack://siteoforigin:,,,/images/siteoforigin.gif",
                           "pack://application:,,,/images/partialfirstframe.gif",
                           "http://i.imgur.com/rCK6xzh.gif"
@@ -39,7 +42,7 @@ namespace DemoForWpf
 
         private void btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog {Filter = "Image Files(*.PNG;*.GIF;*.WEBP)|*.PNG;*.GIF;*.WEBP" };
+            var dlg = new OpenFileDialog { Filter = "Image Files(*.PNG;*.GIF;*.WEBP)|*.PNG;*.GIF;*.WEBP" };
             if (dlg.ShowDialog() == true)
             {
                 Images.Add(dlg.FileName);
@@ -74,7 +77,7 @@ namespace DemoForWpf
                 _selectedImage = value;
                 OnPropertyChanged("SelectedImage");
                 Completed = false;
-                Dispatcher.BeginInvoke(ImageChanged, DispatcherPriority.Background);
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action)ImageChanged);
             }
         }
 
@@ -177,7 +180,7 @@ namespace DemoForWpf
                 _repeatBehavior = value;
                 OnPropertyChanged("RepeatBehavior");
                 Completed = false;
-                Dispatcher.BeginInvoke(ImageChanged, DispatcherPriority.Background);
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, (Action)ImageChanged);
             }
         }
 

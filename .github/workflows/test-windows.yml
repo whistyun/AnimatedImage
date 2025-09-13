@@ -1,9 +1,49 @@
 name: Test Windows
+
 on:
-    workflow_dispatch:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+
 jobs:
-    other-branch-job:
-        runs-on: ubuntu-latest
-        steps:
-            - name: dummy job
-              run: echo "dummy"
+  test:
+    name: Windows ${{ matrix.arch }} Test
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x86, x64]
+        frm:  [net9.0, net472]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Setup .NET (x86)
+        run: |        
+          if ("${{ matrix.arch }}" -eq "x86") {
+            winget install Microsoft.DotNet.SDK.9 `
+                   --architecture x86 `
+                   --accept-package-agreements `
+                   --accept-source-agreements `
+                   --disable-interactivity
+          }
+
+      - name: Set dotnet path
+        run: |
+          if ("${{ matrix.arch }}" -eq "x86") {
+            echo "DOTNET_EXE=C:\Program Files (x86)\dotnet\dotnet.exe" >> $env:GITHUB_ENV
+          } else {
+            echo "DOTNET_EXE=dotnet" >> $env:GITHUB_ENV
+          }
+
+      - name: Build
+        run: |
+          &"${{ env.DOTNET_EXE }}" build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}
+
+      - name: Test
+        run: |
+          &"${{ env.DOTNET_EXE}}" test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}

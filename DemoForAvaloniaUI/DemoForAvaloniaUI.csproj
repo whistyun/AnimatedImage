@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\AnimatedImage.props" />
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
@@ -26,7 +29,12 @@
     <None Remove="Assets\*" />
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\AnimatedImage.Avalonia\AnimatedImage.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AnimatedImage.Native" Version="*-*"/>
   </ItemGroup>
 </Project>

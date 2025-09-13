@@ -1,9 +1,275 @@
 name: Build libwebp
+
 on:
-    workflow_dispatch:
+  workflow_dispatch:
+
+env:
+  webpurl: https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
+  libwebp: libwebp-1.6.0
+
 jobs:
-    other-branch-job:
-        runs-on: ubuntu-latest
-        steps:
-            - name: dummy job
-              run: echo "dummy"
+  download-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and extract libwebp
+        run:  curl -LO ${{ env.webpurl }}
+
+      - name: Cache source
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+  build-linux:
+    needs: download-source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check linux libs cache
+        id:   linuxX64libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-x64/
+          key:  lib-linux-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Check linux libs cache
+        id:   linuxArm64libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-arm64/
+          key:  lib-linux-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Cache extracted source
+        if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Extracts tar.gz
+        if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
+        run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          mv ${{ env.libwebp }} libwebp
+
+      - name: Install dependencies
+        if: steps.linuxX64libs.outputs.cache-hit != 'true' || steps.linuxArm64libs.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get install -y cmake
+          sudo apt-get install -y make
+          sudo apt-get install -y libjpeg-dev libpng-dev libtiff-dev libgif-dev
+
+      - name: Build libwebp for x64
+        if: steps.linuxX64libs.outputs.cache-hit != 'true'
+        run: |
+          mkdir build-x64 && cd build-x64
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(nproc)
+          cd ..
+          mkdir lib-linux-x64
+          cp build-x64/*.so.*    lib-linux-x64/
+          cp build-x64/*.so      lib-linux-x64/
+
+      - name: Cache build result
+        if: steps.linuxX64libs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: lib-linux-x64/
+          key:  lib-linux-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Build libwebp for arm64
+        if: steps.linuxArm64libs.outputs.cache-hit != 'true'
+        run: |
+          mkdir build-arm64 && cd build-arm64
+          cmake ../libwebp \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install-arm64 \
+            -DBUILD_SHARED_LIBS=ON
+          make -j$(nproc)
+          cd ..
+          mkdir lib-linux-arm64
+          cp build-arm64/*.so.*      lib-linux-arm64/
+          cp build-arm64/*.so        lib-linux-arm64/
+
+      - name: Cache build result
+        if: steps.linuxArm64libs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: lib-linux-arm64/
+          key:  lib-linux-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+  build-windows:
+    needs: download-source
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, Win32, ARM64]
+    steps:
+      - name: Check windows libs cache
+        id:   winlibs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-${{ matrix.arch }}/
+          key:  lib-win-${{ matrix.arch }}-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Cache extracted source
+        if: steps.winlibs.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Extracts tar.gz
+        if: steps.winlibs.outputs.cache-hit != 'true'
+        run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          Rename-Item ${{ env.libwebp }} libwebp
+
+      - name: Build libwebp
+        if: steps.winlibs.outputs.cache-hit != 'true'
+        run: |
+          mkdir build && cd build
+          cmake ../libwebp `
+            -DCMAKE_GENERATOR_PLATFORM=${{ matrix.arch }} `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_SHARED_LIBS=ON `
+            -DCMAKE_INSTALL_PREFIX=install-${{ matrix.arch }}
+          cmake --build . --config Release
+          cd ..
+          mkdir lib-win-${{ matrix.arch }}
+          cp .\build\Release\*.dll  lib-win-${{ matrix.arch }}\
+
+      - name: Cache build result
+        if: steps.winlibs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: lib-win-${{ matrix.arch }}/
+          key:  lib-win-${{ matrix.arch }}-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+  build-macos-arm64:
+    needs: download-source
+    runs-on: macos-latest
+    steps:
+      - name: Check osx libs cache
+        id:   osxlibs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-osx-arm64/
+          key:  lib-osx-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Cache extracted source
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Extracts tar.gz
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          mv ${{ env.libwebp }} libwebp
+
+      - name: Build libwebp
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        run: |
+          mkdir build-osx && cd build-osx
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
+          mkdir lib-osx-arm64
+          cp build-osx/*.dylib      lib-osx-arm64/
+
+      - name: Cache build result
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: lib-osx-arm64/
+          key:  lib-osx-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+  package-libs:
+    needs: [build-linux, build-windows, build-macos-arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache linux x64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-x64/
+          key:  lib-linux-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache linux arm64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-linux-arm64/
+          key:  lib-linux-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache windows x64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-x64/
+          key:  lib-win-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache windows x86 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-Win32/
+          key:  lib-win-Win32-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache windows arm64 libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-win-ARM64/
+          key:  lib-win-ARM64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache osx libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-osx-arm64/
+          key:  lib-osx-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Collect libs
+        run: |
+          mkdir libs
+          mv lib-linux-x64   libs/linux-x64
+          mv lib-linux-arm64 libs/linux-arm64
+          mv lib-win-x64     libs/win-x64
+          mv lib-win-Win32   libs/win-x86
+          mv lib-win-ARM64   libs/win-arm64
+          mv lib-osx-arm64   libs/osx-arm64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.libwebp }} libraries
+          path: libs/

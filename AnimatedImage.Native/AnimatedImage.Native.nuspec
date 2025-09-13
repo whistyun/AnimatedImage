@@ -1,0 +1,17 @@
+<package>
+  <metadata>
+    <id>AnimatedImage.Native</id>
+    <version>1.6.0</version>
+    <authors>whistyun</authors>
+    <description>Native libraries for AnimatedImage</description>
+  </metadata>
+  <files>
+    <file src="linux-arm64\*.*" target="runtimes\linux-arm64\native\" />
+    <file src="linux-x64\*.*"   target="runtimes\linux-x64\native\"   />
+    <file src="osx-arm64\*.*"   target="runtimes\osx-arm64\native\"   />
+    <file src="win-arm64\*.*"   target="runtimes\win-arm64\native\"   />
+    <file src="win-x64\*.*"     target="runtimes\win-x64\native\"     />
+    <file src="win-x86\*.*"     target="runtimes\win-x86\native\"     />
+    <file src="AnimatedImage.Native.targets" target="build\AnimatedImage.Native.targets" />
+  </files>
+</package>

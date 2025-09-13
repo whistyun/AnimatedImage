@@ -15,9 +15,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(WindowsPackageTargetFrameworks)</TargetFrameworks>
-    <Version>$(PackageVersion)</Version>
-    <Description>A library to display animated GIF images and PNG images in WPF</Description>
-    <Title>Animated GIF &amp; PNG in WPF</Title>
+    <Version>$(MyProjectVersion)</Version>
+    <Description>A library to display animated GIF, PNG and WebP images in WPF</Description>
+    <Title>Animated GIF &amp; PNG &amp; WebP in WPF</Title>
     <Authors>Thomas Levesque, whistyun</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

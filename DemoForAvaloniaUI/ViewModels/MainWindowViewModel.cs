@@ -28,21 +28,29 @@ namespace DemoForAvaloniaUI.ViewModels
         public MainWindowViewModel()
         {
             Sources = new(new[] {
+                new ImageSource("--- animated gif ---"),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/bomb-once.gif")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/Bomb.gif")),
-                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/BouncingBeachBall.png")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/earth.gif")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/monster.gif")),
-                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/nonanimated.gif")),
-                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/nonanimated.png")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/partialfirstframe.gif")),
-                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/pause.png")),
-                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/play.png")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/radar.gif")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/siteoforigin.gif")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/working.gif")),
+                new ImageSource("--- animated png ---"),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/BouncingBeachBall.png")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/pause.png")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/play.png")),
+                new ImageSource("--- animated webp ---"),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/stickman.webp")),
+                new ImageSource("--- no animated ---"),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/nonanimated.gif")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/nonanimated.png")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/nonanimated.webp")),
+                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/nonanimated_lossless.webp")),
+                new ImageSource("--- not supported ---"),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/UnsupportImageFormat.bmp")),
                 new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/UnsupportImageFormat.jpg")),
-                new ImageSource(new Uri("avares://DemoForAvaloniaUI/Assets/working.gif"))
             });
 
 
@@ -67,8 +75,13 @@ namespace DemoForAvaloniaUI.ViewModels
     public class ImageSource
     {
         public string Name { get; }
-        public AnimatedImageSource Source { get; }
+        public AnimatedImageSource? Source { get; }
 
+        public ImageSource(string text)
+        {
+            Name = text;
+            Source = null;
+        }
         public ImageSource(Uri source)
         {
             Name = source.ToString();
