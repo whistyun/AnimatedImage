@@ -57,6 +57,32 @@ You can also specify the repeat behavior (the default is `0x`, which means it wi
        anim:ImageBehavior.AnimatedSource="Images/animated.gif" />
 ```
 
+
+## NuGet
+
+* https://www.nuget.org/packages/AnimatedImage
+* https://www.nuget.org/packages/AnimatedImage.Avalonia
+* https://www.nuget.org/packages/AnimatedImage.Wpf
+* https://www.nuget.org/packages/AnimatedImage.Native
+
+
+## WebP supporting
+
+To use WebP, [AnimatedImage.Native](https://www.nuget.org/packages/AnimatedImage.Native) library is required.
+
+```
+dotnet add package AnimatedImage.Native 
+```
+
+We have verified operation on the following platforms.
+
+| Platform | Framework            | Architecture    | 
+|----------|----------------------|-----------------|
+| Linux    | .Net 9.0             | x64, arm64      |
+| OSX      | .Net 9.0             | arm64           |
+| Windows  | .Net 9.0             | x86, x64, arm64 |
+| Windows  | .NET Framework 4.7.2 | x86, x64, arm64 |
+
 The following source code was referenced when adding WebP animation support.
 
 thomas694/WebP-wrapper-animatedWebP  
