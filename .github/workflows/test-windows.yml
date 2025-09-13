@@ -18,19 +18,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup .NET
-        if: strategy.matrix.frm == 'x64'
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
       - name: Setup .NET (x86)
-        if: strategy.matrix.frm == 'x86'
         run: |        
-          winget install Microsoft.DotNet.SDK.9 `
-                 --architecture x86 `
-                 --accept-package-agreements `
-                 --accept-source-agreements `
-                 --disable-interactivity
+          if ("${{ matrix.arch }}" -eq "x86") {
+            winget install Microsoft.DotNet.SDK.9 `
+                   --architecture x86 `
+                   --accept-package-agreements `
+                   --accept-source-agreements `
+                   --disable-interactivity
+          }
 
       - name: Set dotnet path
         run: |
