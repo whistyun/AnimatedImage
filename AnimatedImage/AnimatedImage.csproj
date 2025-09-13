@@ -33,7 +33,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="AnimatedImageTest" PublicKey="0024000004800000940000000602000000240000525341310004000001000100516f9b436d278578080993182e4c7b1338cfbdb9eae30a9e155bb58e2ec237fecbf91edfaa60cbbe700bca39af63ffc1d295b07e726eb233f55522e3ac6f9b3587d1176018803140bdd297b3f5e991482dee5aac6dffeecbadeece24fecd6f7ca8249fd6ecf8f2210541aaf6a6a0103afd0ad4f835cb64b55158f9e8a87303b3" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or  '$(TargetFramework)' == 'netcoreapp3.1' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or '$(TargetFramework)' == 'net472' Or '$(TargetFramework)' == 'netcoreapp3.1' ">
     <PackageReference Include="SharpCompress" Version="$(SharpCompressVersion)" />
   </ItemGroup>
 </Project>

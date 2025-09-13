@@ -26,6 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoForAvaloniaUI", "DemoFo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AnimatedImage.Native", "AnimatedImage.Native", "{DDB4EF12-CC4E-5E88-E6FC-71A802F4DE97}"
 	ProjectSection(SolutionItems) = preProject
+		AnimatedImage.Native\AnimatedImage.Native.md = AnimatedImage.Native\AnimatedImage.Native.md
 		AnimatedImage.Native\AnimatedImage.Native.nuspec = AnimatedImage.Native\AnimatedImage.Native.nuspec
 		AnimatedImage.Native\AnimatedImage.Native.targets = AnimatedImage.Native\AnimatedImage.Native.targets
 	EndProjectSection
