@@ -8,7 +8,7 @@
   <files>
     <file src="linux-arm64\*.*" target="runtimes\linux-arm64\native\" />
     <file src="linux-x64\*.*"   target="runtimes\linux-x64\native\"   />
-    <file src="osx\*.*"         target="runtimes\osx\native\"         />
+    <file src="osx-arm64\*.*"   target="runtimes\osx-arm64\native\"   />
     <file src="win-arm64\*.*"   target="runtimes\win-arm64\native\"   />
     <file src="win-x64\*.*"     target="runtimes\win-x64\native\"     />
     <file src="win-x86\*.*"     target="runtimes\win-x86\native\"     />
