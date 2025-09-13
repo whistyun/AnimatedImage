@@ -161,10 +161,28 @@ namespace AnimatedImage.Formats.WebP
         {
             var asm = Assembly.GetCallingAssembly();
             var asmDir = Path.GetDirectoryName(asm.Location)!;
+
+#if NET472_OR_GREATER
+            var arch = RuntimeInformation.ProcessArchitecture;
+            var dllDir = arch switch
+            {
+                Architecture.X86 => Path.Combine(asmDir, "runtimes/win-x86/native/"),
+                Architecture.X64 => Path.Combine(asmDir, "runtimes/win-x64/native/"),
+                Architecture.Arm64 => Path.Combine(asmDir, "runtimes/win-arm64/native/"),
+                _ => string.Empty
+            };
+
+            if (dllDir == string.Empty)
+            {
+                Debug.Print("AnimatedImage.Formats.WebP: [windows] unsupport architecture " + arch);
+                return false;
+            }
+#else
             var dllDir =
                     Environment.Is64BitProcess ?
                         Path.Combine(asmDir, "runtimes/win-x64/native") :
                         Path.Combine(asmDir, "runtimes/win-x86/native");
+#endif
 
             var nativeDlls = new[] { "libsharpyuv.dll", "libwebp.dll", "libwebpdemux.dll" };
             foreach (var nativeDll in nativeDlls)
@@ -181,7 +199,8 @@ namespace AnimatedImage.Formats.WebP
                     int errorCode = Marshal.GetLastWin32Error();
 
                     var errMsg = string.Format("Failed to load library (ErrorCode: {0})", errorCode);
-                    if(Debugger.IsAttached){
+                    if (Debugger.IsAttached)
+                    {
                         throw new Exception(errMsg);
                     }
                     return false;
@@ -203,7 +222,7 @@ namespace AnimatedImage.Formats.WebP
             var arch = RuntimeInformation.ProcessArchitecture;
             var dllDir =
                     RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                        RuntimeInformation.ProcessArchitecture switch
+                        arch switch
                         {
                             Architecture.X86 => Path.Combine(asmDir, "runtimes/win-x86/native/"),
                             Architecture.X64 => Path.Combine(asmDir, "runtimes/win-x64/native/"),
@@ -211,14 +230,14 @@ namespace AnimatedImage.Formats.WebP
                             _ => Failed("AnimatedImage.Formats.WebP: [windows] unsupport architecture " + arch)
                         } :
                     RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-                        RuntimeInformation.ProcessArchitecture switch
+                        arch switch
                         {
                             Architecture.X64 => Path.Combine(asmDir, "runtimes/linux-x64/native/"),
                             Architecture.Arm64 => Path.Combine(asmDir, "runtimes/linux-arm64/native/"),
                             _ => Failed("AnimatedImage.Formats.WebP: [linux] unsupport architecture " + arch)
                         } :
                     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
-                        RuntimeInformation.ProcessArchitecture switch
+                        arch switch
                         {
                             Architecture.X64 => Path.Combine(asmDir, "runtimes/osx-x64/native/"),
                             Architecture.Arm64 => Path.Combine(asmDir, "runtimes/osx-arm64/native/"),
@@ -261,17 +280,15 @@ namespace AnimatedImage.Formats.WebP
                     return false;
                 }
             }
-
+            return true;
+            
             static string? Failed(string msg)
             {
                 Debug.Print(msg);
                 return null;
             }
-
-            return true;
         }
 #endif
-
         #endregion
 
         /// <summary>Should always be called, to initialize a fresh WebPAnimDecoderOptions

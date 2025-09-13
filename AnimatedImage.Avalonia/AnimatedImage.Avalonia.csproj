@@ -3,12 +3,8 @@
   <Import Project="..\AnimatedImage.props" />
 
   <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
     <LangVersion>10</LangVersion>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
-    <PackageReadmeFile>AnimatedImage.Avalonia.md</PackageReadmeFile>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -22,32 +18,22 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageProjectUrl>https://github.com/whistyun/AnimatedImage</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/whistyun/AnimatedImage/releases</PackageReleaseNotes>
-    <PackageTags>avaloniaui;animated;gif;png</PackageTags>
+    <PackageTags>avaloniaui;animated;gif;png;webp</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
+    <PackageReadmeFile>AnimatedImage.Avalonia.md</PackageReadmeFile>
   </PropertyGroup>
-
-
-  <ItemGroup>
-    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or  '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <PackageReference Include="SharpCompress" Version="$(SharpCompressVersion)" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Include="..\pack_readme\AnimatedImage.Avalonia.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <!-- see https://stackoverflow.com/questions/41979310/including-referenced-project-dlls-in-nuget-package-net-core-rc3-csproj-file -->
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
-    </ItemGroup>
-  </Target>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' Or  '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <PackageReference Include="SharpCompress" Version="$(SharpCompressVersion)" />
+  </ItemGroup>
 </Project>

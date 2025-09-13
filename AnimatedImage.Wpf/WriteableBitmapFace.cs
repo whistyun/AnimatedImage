@@ -50,6 +50,7 @@ namespace AnimatedImage.Wpf
                 leftTop += Bitmap.BackBufferStride;
             }
 
+            Bitmap.AddDirtyRect(new Int32Rect(x, y, width, height));
             Bitmap.Unlock();
         }
     }
