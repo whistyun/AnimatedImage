@@ -23,7 +23,7 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Setup .NET (x86)
-        if: $matrix:frm == 'x86'
+        if: $matrix.frm == 'x86'
         run: |        
           winget install Microsoft.DotNet.SDK.9 `
                  --architecture x86 `
