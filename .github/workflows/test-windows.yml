@@ -1,0 +1,40 @@
+name: Test Windows
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: Windows ${{ matrix.arch }} Test
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x86, x64]
+        frm:  [net9.0, net472]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Test
+        run: dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
+
+      - name: dotnet x86
+        if:   matrix.arch == 'x86'
+        run: $tool="C:\Program Files (x86)\dotnet\dotnet.exe"
+
+      - name: dotnet x64
+        if:   matrix.arch == 'x64'
+        run: $tool="dotnet"
+
+      - name: Build
+        run: &"$tool" build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
+
+      - name: Test
+        run: &"$tool" test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}

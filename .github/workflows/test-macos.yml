@@ -14,11 +14,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
 
-      - name: Run tests
-        run: |
-          dotnet restore AnimatedImageTest/AnimatedImageTest.csproj
-          dotnet build   AnimatedImageTest/AnimatedImageTest.csproj
-          dotnet test    AnimatedImageTest/AnimatedImageTest.csproj
+      - name: Restore
+        run:  dotnet restore AnimatedImageTest/AnimatedImageTest.csproj
 
+      - name: Build
+        run:  dotnet build AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
+
+      - name: Test
+        run: dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0

@@ -3,7 +3,7 @@
   <Import Project="..\AnimatedImage.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(PackageTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(PackageTargetFrameworks);net9.0;net472</TargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>10</LangVersion>
     <IsPackable>false</IsPackable>
