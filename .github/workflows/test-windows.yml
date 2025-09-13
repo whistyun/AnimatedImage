@@ -34,7 +34,7 @@ jobs:
         run: $tool="dotnet"
 
       - name: Build
-        run: &"$tool" build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
+        run: &$tool build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
 
       - name: Test
-        run: &"$tool" test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
+        run: &$tool test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
