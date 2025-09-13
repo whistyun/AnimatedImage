@@ -1,4 +1,4 @@
-name: Test Linux ARM64
+name: Test Linux
 
 on:
   workflow_dispatch:
@@ -8,12 +8,29 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [linux/arm64]
-
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check .nuget cache
+        id:   nugetcache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.nuget/
+          key:  linux-nuget-cache
+
+      - name: Restore csproj
+        if:   steps.nugetcache.outputs.cache-hit != 'true'
+        run:  dotnet restore AnimatedImageTest/AnimatedImageTest.csproj
+
+      - name: Save .nuget cache
+        if:   steps.nugetcache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.nuget/
+          key:  linux-nuget-cache
+
+      - name: Build csproj
+        run:  dotnet build AnimatedImageTest/AnimatedImageTest.csproj
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -21,17 +38,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Run dotnet test in Docker
+      - name: Docker build
         run: |
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --file DockerFile \
-            --output type=docker  \
-            .
-      - name: test
-        run: |
-          dotnet clean
-          dotnet restore AnimatedImageTest/AnimatedImageTest.csproj
-          dotnet build   AnimatedImageTest/AnimatedImageTest.csproj
-          dotnet test    AnimatedImageTest/AnimatedImageTest.csproj
+          docker buildx build --platform linux/arm64 --file DockerFile -t linux-arm-image .
+          docker run -t -d --name linux-arm-container linux-arm-image
 
+      - name: Copy nuget and project
+        run: |
+          hosthome=`realpath ~`
+          guesthome=`docker exec linux-arm-container bash -c "realpath ~"`
+          docker cp $hosthome/.nuget linux-arm-container:$guesthome/
+          docker cp . linux-arm-container:/src/
+
+      - name: Test in Docker
+        run: docker exec -it linux-arm-container dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
+
+      - name: Test on host linux
+        run: dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0

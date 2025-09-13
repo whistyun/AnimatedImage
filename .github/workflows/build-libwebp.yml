@@ -161,16 +161,16 @@ jobs:
           key:  lib-win-${{ matrix.arch }}-${{ env.libwebp }}
           enableCrossOsArchive: true
 
-  build-macos:
+  build-macos-x64:
     needs: download-source
-    runs-on: macos-latest
+    runs-on: build-macos-latest-large
     steps:
       - name: Check osx libs cache
         id:   osxlibs
         uses: actions/cache/restore@v4
         with:
-          path: lib-osx/
-          key:  lib-osx-${{ env.libwebp }}
+          path: lib-osx-x64/
+          key:  lib-osx-x64-${{ env.libwebp }}
           enableCrossOsArchive: true
 
       - name: Cache extracted source
@@ -195,19 +195,64 @@ jobs:
           cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
           make -j$(sysctl -n hw.logicalcpu)
           cd ..
-          mkdir lib-osx
-          cp build-osx/*.dylib      lib-osx/
+          mkdir lib-osx-x64
+          cp build-osx/*.dylib      lib-osx-x64/
 
       - name: Cache build result
         if: steps.osxlibs.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: lib-osx/
-          key:  lib-osx-${{ env.libwebp }}
+          path: lib-osx-x64/
+          key:  lib-osx-x64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+   
+  build-macos-arm64:
+    needs: download-source
+    runs-on: macos-latest
+    steps:
+      - name: Check osx libs cache
+        id:   osxlibs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-osx-arm64/
+          key:  lib-osx-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+
+      - name: Cache extracted source
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.libwebp }}.tar.gz
+          key:  libwebp-source-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Extracts tar.gz
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        run: |
+          tar -xzf ${{ env.libwebp }}.tar.gz
+          mv ${{ env.libwebp }} libwebp
+
+      - name: Build libwebp
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        run: |
+          mkdir build-osx && cd build-osx
+          cmake ../libwebp -DBUILD_SHARED_LIBS=ON 
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
+          mkdir lib-osx-arm64
+          cp build-osx/*.dylib      lib-osx-arm64/
+
+      - name: Cache build result
+        if: steps.osxlibs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: lib-osx-arm64/
+          key:  lib-osx-arm64-${{ env.libwebp }}
           enableCrossOsArchive: true
 
   package-libs:
-    needs: [build-linux, build-windows, build-macos]
+    needs: [build-linux, build-windows, build-macos-x64, build-macos-arm64]
     runs-on: ubuntu-latest
     steps:
       - name: Cache linux x64 libs
@@ -253,8 +298,16 @@ jobs:
       - name: Cache osx libs
         uses: actions/cache/restore@v4
         with:
-          path: lib-osx/
-          key:  lib-osx-${{ env.libwebp }}
+          path: lib-osx-arm64/
+          key:  lib-osx-arm64-${{ env.libwebp }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: Cache osx libs
+        uses: actions/cache/restore@v4
+        with:
+          path: lib-osx-x64/
+          key:  lib-osx-x64-${{ env.libwebp }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
@@ -266,7 +319,8 @@ jobs:
           mv lib-win-x64     libs/win-x64
           mv lib-win-Win32   libs/win-x86
           mv lib-win-ARM64   libs/win-arm64
-          mv lib-osx         libs/osx
+          mv lib-osx-x64     libs/osx-x64
+          mv lib-osx-arm64   libs/osx-arm64
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -220,7 +220,8 @@ namespace AnimatedImage.Formats.WebP
                     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
                         RuntimeInformation.ProcessArchitecture switch
                         {
-                            Architecture.X64 => Path.Combine(asmDir, "runtimes/osx/native/"),
+                            Architecture.X64 => Path.Combine(asmDir, "runtimes/osx-x64/native/"),
+                            Architecture.Arm64 => Path.Combine(asmDir, "runtimes/osx-arm64/native/"),
                             _ => Failed("AnimatedImage.Formats.WebP: [osx] unsupport architecture " + arch)
                         } :
                         Failed("AnimatedImage.Formats.WebP: unsupport platform " + RuntimeInformation.OSDescription);
