@@ -32,8 +32,8 @@ jobs:
 
       - name: Build
         run: |
-          &"${{ env.DOTNET_EXE }}" build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
+          &"${{ env.DOTNET_EXE }}" build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}
 
       - name: Test
         run: |
-          &"${{ env.DOTNET_EXE}}" test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.arch }}
+          &"${{ env.DOTNET_EXE}}" test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}
