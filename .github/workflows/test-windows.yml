@@ -6,9 +6,31 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  test-arm:
+    name: Windows Arm Test
+    runs-on: windows-11-arm
+    strategy:
+      matrix:
+        frm:  [net9.0, net472]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build
+        run: dotnet build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}
+
+      - name: Test
+        run: dotnet test  AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}
+
+
+  test-x:
     name: Windows ${{ matrix.arch }} Test
-    runs-on: [windows-latest, windows-11-arm]
+    runs-on: windows-latest
     strategy:
       matrix:
         arch: [x86, x64]
