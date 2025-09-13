@@ -1,5 +1,4 @@
-A simple library to display animated GIF images and animated PNG images in WPF and AvaloniaUI, usable in XAML or in code.
-
+A simple library to display animated GIF images, animated PNG images and animated WEBP images in AvaloniaUI, usable in XAML or in code.
 
 ## How to use
 
@@ -20,3 +19,17 @@ You can also specify the repeat behavior (the default is `0x`, which means it wi
 <Image anim:ImageBehavior.RepeatBehavior="3x"
        anim:ImageBehavior.AnimatedSource="Images/animated.gif" />
 ```
+
+
+## WebP supporting
+
+To use WebP, [AnimatedImage.Native](https://www.nuget.org/packages/AnimatedImage.Native) library is required.
+
+We have verified operation on the following platforms.
+
+| Platform | Framework            | Architecture    | 
+|----------|----------------------|-----------------|
+| Linux    | .Net 9.0             | x64, arm64      |
+| OSX      | .Net 9.0             | arm64           |
+| Windows  | .Net 9.0             | x86, x64, arm64 |
+| Windows  | .NET Framework 4.7.2 | x86, x64, arm64 |
