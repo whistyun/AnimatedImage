@@ -45,7 +45,7 @@ jobs:
 
       - name: Docker build
         run: |
-          docker buildx build --platform linux/arm64 --file DockerFile -t linux-arm-image .
+          docker buildx build --platform linux/arm64 -f DockerFile -o type=docker -t linux-arm-image .
           docker run -t -d --name linux-arm-container linux-arm-image
 
       - name: Copy nuget and project
