@@ -5,6 +5,7 @@
     <authors>whistyun</authors>
     <description>Native libraries for AnimatedImage</description>
     <readme>docs\AnimatedImage.Native.md</readme>
+    <license type="file">licenses\AnimatedImage.Native.License.md</license>
   </metadata>
   <files>
     <file src="linux-arm64\*.*" target="runtimes\linux-arm64\native\" />
@@ -15,5 +16,6 @@
     <file src="win-x86\*.*"     target="runtimes\win-x86\native\"     />
     <file src="AnimatedImage.Native.targets" target="build\AnimatedImage.Native.targets" />
     <file src="AnimatedImage.Native.md"      target="docs\" />
+    <file src="AnimatedImage.Native.License.md" target="licenses" />
   </files>
 </package>

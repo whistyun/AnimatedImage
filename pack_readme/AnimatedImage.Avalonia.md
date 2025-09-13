@@ -24,12 +24,3 @@ You can also specify the repeat behavior (the default is `0x`, which means it wi
 ## WebP supporting
 
 To use WebP, [AnimatedImage.Native](https://www.nuget.org/packages/AnimatedImage.Native) library is required.
-
-We have verified operation on the following platforms.
-
-| Platform | Framework            | Architecture    | 
-|----------|----------------------|-----------------|
-| Linux    | .Net 9.0             | x64, arm64      |
-| OSX      | .Net 9.0             | arm64           |
-| Windows  | .Net 9.0             | x86, x64, arm64 |
-| Windows  | .NET Framework 4.7.2 | x86, x64, arm64 |

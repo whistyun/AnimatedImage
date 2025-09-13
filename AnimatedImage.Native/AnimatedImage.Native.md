@@ -2,7 +2,7 @@ Native library container nupkg.
 
 ## WebP
 
-We have verified operation on the following platforms.
+This package contains native libraries for the following platforms.
 
 | Platform | Framework            | Architecture    | 
 |----------|----------------------|-----------------|

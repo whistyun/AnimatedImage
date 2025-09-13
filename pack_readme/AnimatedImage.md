@@ -35,13 +35,6 @@ SKBitmap image = bitmapface.Bitmap;
 
 To use WebP, [AnimatedImage.Native](https://www.nuget.org/packages/AnimatedImage.Native) library is required.
 
-We have verified operation on the following platforms.
-
-| Framework            | Architecture    | 
-|----------------------|-----------------|
-| .Net 9.0             | x86, x64, arm64 |
-| .NET Framework 4.7.2 | x86, x64, arm64 |
-
 
 ## Features
 

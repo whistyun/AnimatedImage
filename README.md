@@ -74,7 +74,7 @@ To use WebP, [AnimatedImage.Native](https://www.nuget.org/packages/AnimatedImage
 dotnet add package AnimatedImage.Native 
 ```
 
-We have verified operation on the following platforms.
+We have tested operation on the following platforms.
 
 | Platform | Framework            | Architecture    | 
 |----------|----------------------|-----------------|
