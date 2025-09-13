@@ -55,8 +55,8 @@ jobs:
           docker cp $hosthome/.nuget linux-arm-container:$guesthome/
           docker cp . linux-arm-container:/src/
 
-      - name: Test in Docker
-        run: docker exec -it linux-arm-container dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
+      - name: Test on Linux Arm64 in Docker
+        run: docker exec linux-arm-container dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
 
-      - name: Test on host linux
+      - name: Test on Linux x64
         run: dotnet test AnimatedImageTest/AnimatedImageTest.csproj -f net9.0
