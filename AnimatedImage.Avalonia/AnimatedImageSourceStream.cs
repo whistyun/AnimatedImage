@@ -19,6 +19,7 @@ namespace AnimatedImage.Avalonia
 #endif
         }
 
+        /// <inheritdoc/>
         public override Stream? SourceSeekable
             => StreamSource is not null ? StreamSource.SupportSeek() : null;
 

@@ -27,7 +27,6 @@ namespace AnimatedImage.Formats
         private WebPAnimDecoder _decoder;
 
         private int _last_access = -1;
-        private bool disposedValue;
 
         public WebpRenderer(Stream stream, IBitmapFaceFactory factory)
         {
@@ -195,36 +194,15 @@ namespace AnimatedImage.Formats
             _bitmap.WriteBGRA(data, 0, 0, Width, Height);
         }
 
-        protected override void Dispose(bool disposing)
+
+        protected override void DisposeUnmanagedResource()
         {
-            if (!disposedValue)
+            WebPAnimDecoderDelete(_decoder);
+
+            if (_pinnedWebP.IsAllocated)
             {
-                if (disposing)
-                {
-                    // TODO: Discard managed state (managed object)
-                }
-
-                // TODO: Release unmanaged resources (unmanaged objects) and override finalizers.
-                WebPAnimDecoderDelete(_decoder);
-
-                if (_pinnedWebP.IsAllocated)
-                {
-                    _pinnedWebP.Free();
-                }
-
-                // TODO: Set large fields to null.
-                disposedValue = true;
-
-                // Call the base class implementation.
-                base.Dispose(disposing);
+                _pinnedWebP.Free();
             }
-        }
-
-        // TODO: Only override the finalizer if the ‘Dispose(bool disposing)’ contains code that releases unmanaged resources.
-        ~WebpRenderer()
-        {
-            // Do not modify this code. Write cleanup code in the ‘Dispose(bool disposing)’ method.
-            Dispose(disposing: false);
         }
     }
 }

@@ -2,9 +2,7 @@
 using AnimatedImage.Formats.Png.Types;
 using AnimatedImage.Formats.Png;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AnimatedImage.Formats
@@ -44,10 +42,7 @@ namespace AnimatedImage.Formats
 
         public override void Render(IBitmapFace bitmap, byte[] work, byte[]? backup)
         {
-            if (_decompress is null)
-            {
-                Decompress();
-            }
+            var decompress = _decompress ?? Decompress();
 
             bitmap.ReadBGRA(work, X, Y, Width, Height);
             if (backup != null)
@@ -55,25 +50,27 @@ namespace AnimatedImage.Formats
                 Array.Copy(work, backup, Width * Height * 4);
             }
 
-            RenderBlock(work);
+            RenderBlock(decompress, work);
 
             bitmap.WriteBGRA(work, X, Y, Width, Height);
         }
 
         public override async Task RenderAsync(IBitmapFace bitmap, byte[] work, byte[]? backup)
         {
-            var dcTsk = _decompress is null ? Task.Run(Decompress) : Task.FromResult(0);
+            var decompressTask = _decompress is null ?
+                                        Task.Run(Decompress) :
+                                        Task.FromResult(_decompress);
 
             bitmap.ReadBGRA(work, X, Y, Width, Height);
             if (backup is not null)
                 Array.Copy(work, backup, Width * Height * 4);
 
-            await dcTsk.ContinueWith((tsk, s) => RenderBlock((byte[])s), work);
+            await decompressTask.ContinueWith((tsk, s) => RenderBlock(tsk.Result, (byte[])s!), work);
 
             bitmap.WriteBGRA(work, X, Y, Width, Height);
         }
 
-        private void Decompress()
+        private byte[] Decompress()
         {
             _decompress = new byte[_data.Stride * Height];
 
@@ -83,15 +80,18 @@ namespace AnimatedImage.Formats
                 _data.DecompressLine(_decompress, i, _data.Stride);
                 i += _data.Stride;
             }
+
+            return _decompress;
         }
 
-        private void RenderBlock(byte[] work) {
+        private void RenderBlock(byte[] decompressData, byte[] work)
+        {
             if (BlendMethod == BlendOps.APNGBlendOpSource)
             {
                 int j = 0;
-                for (var i = 0; i < _decompress.Length; ++i)
+                for (var i = 0; i < decompressData.Length; ++i)
                 {
-                    var idx = _decompress[i];
+                    var idx = decompressData[i];
                     var color = _palette[idx];
                     work[j++] = color.B;
                     work[j++] = color.G;
@@ -102,9 +102,9 @@ namespace AnimatedImage.Formats
             else if (BlendMethod == BlendOps.APNGBlendOpOver)
             {
                 int j = 0;
-                for (var i = 0; i < _decompress.Length; ++i)
+                for (var i = 0; i < decompressData.Length; ++i)
                 {
-                    var idx = _decompress[i];
+                    var idx = decompressData[i];
                     var alpha = _transparency[idx];
 
                     if (alpha == 0)

@@ -8,6 +8,9 @@
     <LangVersion>10</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFrameworks>$(PackageTargetFrameworks)</TargetFrameworks>

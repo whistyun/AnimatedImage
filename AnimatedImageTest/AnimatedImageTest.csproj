@@ -10,6 +10,9 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Inputs\*.gif" />
