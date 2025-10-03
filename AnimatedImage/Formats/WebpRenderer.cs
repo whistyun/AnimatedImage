@@ -59,7 +59,7 @@ namespace AnimatedImage.Formats
             {
                 do
                 {
-                    var duration = Math.Max(iter.duration, 100);
+                    var duration = iter.duration <= 10 ? 100 : iter.duration;
                     TimeSpan end = begin + TimeSpan.FromMilliseconds(duration);
                     var frame = new WebpRendererFrame(0, 0, Width, Height, begin, end);
                     frames.Add(frame);
