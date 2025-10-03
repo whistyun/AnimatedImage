@@ -11,15 +11,15 @@ namespace DemoForAvaloniaUI.ViewModels
 {
     public class MainWindowViewModel : ReactiveObject
     {
-        private ImageSource _selectedSource;
-        public ImageSource SelectedSource
+        private ImageSource? _selectedSource;
+        public ImageSource? SelectedSource
         {
             get => _selectedSource;
             set => this.RaiseAndSetIfChanged(ref _selectedSource, value);
         }
 
-        private ObservableCollection<ImageSource> _sources;
-        public ObservableCollection<ImageSource> Sources
+        private ObservableCollection<ImageSource>? _sources;
+        public ObservableCollection<ImageSource>? Sources
         {
             get => _sources;
             set => this.RaiseAndSetIfChanged(ref _sources, value);

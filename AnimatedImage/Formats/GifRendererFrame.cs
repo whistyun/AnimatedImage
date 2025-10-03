@@ -62,7 +62,7 @@ namespace AnimatedImage.Formats
             if (backup is not null)
                 Array.Copy(work, backup, Width * Height * 4);
 
-            await dcTsk.ContinueWith((tsk, s) => RenderBlock((byte[])s), work);
+            await dcTsk.ContinueWith((tsk, s) => RenderBlock((byte[])s!), work);
 
             bitmap.WriteBGRA(work, X, Y, Width, Height);
         }
