@@ -23,7 +23,7 @@ if($BuildFlg -eq "test"){
     $distTxt = $dist.TotalSeconds.ToString("0000000000")
 
     $versionText  = "$version-alpha$distTxt"
-    $anotherPacks = "$repoFolder\$projName.$version-*.nupkg"
+    $anotherPacks = "$repoFolder\$projName.$version.nupkg"
 }
 else{
     $versionText  = $version
