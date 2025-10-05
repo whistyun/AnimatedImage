@@ -19,9 +19,26 @@ namespace AnimatedImage.Avalonia
 #endif
         }
 
+        private Stream? _SourceSeekable;
         /// <inheritdoc/>
         public override Stream? SourceSeekable
-            => StreamSource is not null ? StreamSource.SupportSeek() : null;
+        {
+            get
+            {
+                if (StreamSource is null)
+                    return null;
+
+                if (_SourceSeekable is not null)
+                {
+                    _SourceSeekable.Position = 0;
+                    return _SourceSeekable;
+                }
+                else
+                {
+                    return _SourceSeekable = StreamSource.SupportSeek();
+                }
+            }
+        }
 
 #if NET5_0_OR_GREATER
         /// <summary>
@@ -41,11 +58,8 @@ namespace AnimatedImage.Avalonia
         /// <inheritdoc/>
         public override FrameRenderer? TryCreate()
         {
-            if (StreamSource is null)
-                return null;
-
-            var strm = StreamSource.SupportSeek();
-            if (FrameRenderer.TryCreate(strm, new WriteableBitmapFaceFactory(), out var renderer))
+            if (SourceSeekable is { } strm
+                && FrameRenderer.TryCreate(strm, new WriteableBitmapFaceFactory(), out var renderer))
                 return renderer;
 
             return null;
