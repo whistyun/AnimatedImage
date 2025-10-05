@@ -4,8 +4,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:anim="https://github.com/whistyun/AnimatedImage.Avalonia"
         xmlns:vm="clr-namespace:DemoForAvaloniaUI.ViewModels;assembly=DemoForAvaloniaUI"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" 
+        d:DesignWidth="300" d:DesignHeight="450"
+        Width="500" Height="550"
         x:Class="DemoForAvaloniaUI.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
         Title="DemoForAvaloniaUI">
   <Window.DataContext>
     <vm:MainWindowViewModel/>
@@ -15,23 +18,80 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto"/>
         <ColumnDefinition Width="10*"/>
+        <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
 
-      <Label Grid.Row="0" Grid.Column="0">Image</Label>
-      <ComboBox 
-          Grid.Row="0" Grid.Column="1" 
+      <!-- Image source -->
+      <Label Grid.Row="0" Grid.Column="0">
+        Image
+      </Label>
+      <ComboBox
+          Grid.Row="0" Grid.Column="1"
           HorizontalAlignment="Stretch"
           ItemsSource="{Binding Sources}"
           SelectedItem="{Binding SelectedSource}"
           />
+      <Button Grid.Row="0" Grid.Column="2"
+              HorizontalAlignment="Stretch"
+              Command="{Binding OpenFile}">
+        Open file...
+      </Button>
+      <Button Grid.Row="1" Grid.Column="2"
+              HorizontalAlignment="Stretch"
+              Command="{Binding OpenUrl}">
+        Open URL...
+      </Button>
+
+      <!-- Repeat -->
+      <Label Grid.Row="2" Grid.Column="0">
+        Repeat
+      </Label>
+      <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+        <RadioButton GroupName="Repeat" 
+                     Margin="10,0,0,0"
+                     IsChecked="{Binding IsDefaultRepeatBehavior}">
+          Default
+        </RadioButton>
+
+        <RadioButton GroupName="Repeat"
+                     Margin="10,0,0,0"
+                     IsChecked="{Binding IsForeverRepeatBehavior}">
+          Forever
+        </RadioButton>
+
+        <RadioButton GroupName="Repeat"
+                     Margin="10,0,0,0"
+                     IsChecked="{Binding IsSpecificCountRepeatBehavior}">
+          Specific count: 
+        </RadioButton>
+        <TextBox Text="{Binding RepeatCount}"/>
+      </StackPanel>
+
+      <!-- Speed -->
+      <Label Grid.Row="3" Grid.Column="0" VerticalContentAlignment="Center">
+        Speed
+      </Label>
+      <Slider Grid.Row="3" Grid.Column="1" 
+              Minimum="0.1" Maximum="10"
+              Ticks="0.1"
+              Value="{Binding SpeedRatio}"
+              />
+      <StackPanel Grid.Row="3" Grid.Column="2" >
+        <TextBox VerticalContentAlignment="Bottom"
+                 Text="{Binding SpeedRatio, StringFormat={}{0:0.00}}"/>
+      </StackPanel>
     </Grid>
 
     <Image
       anim:ImageBehavior.AnimatedSource="{Binding SelectedSource.Source}"
+      anim:ImageBehavior.SpeedRatio="{Binding SpeedRatio}"
+      anim:ImageBehavior.RepeatBehavior="{Binding RepeatBehavior}"
       />
   </DockPanel>
 </Window>

@@ -4,12 +4,14 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
     <TrimMode>copyused</TrimMode>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
     <None Remove=".gitignore" />
@@ -23,7 +25,7 @@
     <PackageReference Include="Avalonia" Version="11.2.1" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1" />
     <PackageReference Include="Avalonia.Desktop" Version="11.2.1" />
-    <PackageReference Include="ReactiveUI" Version="19.5.39" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\*" />
@@ -35,6 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AnimatedImage.Native" Version="*-*"/>
+    <PackageReference Include="AnimatedImage.Native" Version="*-*" />
   </ItemGroup>
 </Project>

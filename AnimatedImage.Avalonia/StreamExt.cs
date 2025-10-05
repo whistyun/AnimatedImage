@@ -11,6 +11,7 @@ namespace AnimatedImage.Avalonia
 
             var memstream = new MemoryStream();
             strm.CopyTo(memstream);
+            memstream.Position = 0;
             return memstream;
         }
     }

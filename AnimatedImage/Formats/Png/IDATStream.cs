@@ -148,11 +148,11 @@ namespace AnimatedImage.Formats.Png
             private int _idx;
             private int _length;
             private readonly byte[] _buffer;
-            private readonly Stream _memoryStream;
+            private readonly MultiMemoryStream _memoryStream;
             private ZlibStream _stream;
 
 
-            public ByteBuffer(Stream stream)
+            protected ByteBuffer(MultiMemoryStream stream)
             {
 
                 _memoryStream = stream;
@@ -165,7 +165,7 @@ namespace AnimatedImage.Formats.Png
             public virtual void Reset()
             {
                 _idx = _length = 0;
-                _memoryStream.Position = 0;
+                _memoryStream.Reset();
                 _stream = new ZlibStream(_memoryStream, CompressionMode.Decompress);
             }
 
@@ -211,7 +211,7 @@ namespace AnimatedImage.Formats.Png
 
             public abstract int Read(byte[] array, int offset, int length);
 
-            public static ByteBuffer Create(Stream stream, byte depth)
+            public static ByteBuffer Create(MultiMemoryStream stream, byte depth)
                 => depth switch
                 {
                     1 => new ByteBuffer1(stream),
@@ -228,7 +228,7 @@ namespace AnimatedImage.Formats.Png
             private int _subidx;
             private readonly byte[] _sub;
 
-            public ByteBuffer1(Stream stream) : base(stream)
+            public ByteBuffer1(MultiMemoryStream stream) : base(stream)
             {
                 _sub = new byte[8];
                 _subidx = _sub.Length;
@@ -312,7 +312,7 @@ namespace AnimatedImage.Formats.Png
             private int _subidx;
             private readonly byte[] _sub;
 
-            public ByteBuffer2(Stream stream) : base(stream)
+            public ByteBuffer2(MultiMemoryStream stream) : base(stream)
             {
                 _sub = new byte[4];
                 _subidx = _sub.Length;
@@ -388,7 +388,7 @@ namespace AnimatedImage.Formats.Png
             private int _subidx;
             private readonly byte[] _sub;
 
-            public ByteBuffer4(Stream stream) : base(stream)
+            public ByteBuffer4(MultiMemoryStream stream) : base(stream)
             {
                 _sub = new byte[2];
                 _subidx = _sub.Length;
@@ -457,7 +457,7 @@ namespace AnimatedImage.Formats.Png
 
         internal class ByteBuffer8 : ByteBuffer
         {
-            public ByteBuffer8(Stream stream) : base(stream) { }
+            public ByteBuffer8(MultiMemoryStream stream) : base(stream) { }
 
             public override int Read(byte[] array, int offset, int length) => Read8(array, offset, length);
         }
@@ -466,7 +466,7 @@ namespace AnimatedImage.Formats.Png
         {
             private byte[] _buffer = new byte[0];
 
-            public ByteBuffer16(Stream stream) : base(stream) { }
+            public ByteBuffer16(MultiMemoryStream stream) : base(stream) { }
 
             public override int Read(byte[] array, int offset, int length)
             {
@@ -560,6 +560,8 @@ namespace AnimatedImage.Formats.Png
                 }
             }
 
+            public void Reset() => Position = 0;
+
             public MultiMemoryStream(IEnumerable<byte[]> arrays)
             {
                 _arrays = arrays.ToArray();
@@ -632,7 +634,6 @@ namespace AnimatedImage.Formats.Png
 
                 return Position;
             }
-
 
             public override void SetLength(long value)
             {
