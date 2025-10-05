@@ -84,18 +84,10 @@ namespace AnimatedImage.Wpf
                 strm = null!;
                 return false;
             }
-
-            if (stream.CanSeek)
-            {
+            else {
                 strm = stream;
                 return true;
             }
-
-            var memstream = new MemoryStream();
-            stream.CopyTo(memstream);
-            strm = memstream;
-            return true;
-
 
             static Stream? OpenFirst(Uri uri)
             {

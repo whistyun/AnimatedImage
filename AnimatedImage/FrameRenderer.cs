@@ -115,41 +115,79 @@ namespace AnimatedImage
 #endif
             out FrameRenderer renderer)
         {
-            stream.Position = 0;
-            var magic = new byte[Signature.MaxLength];
-
-            if (stream.Read(magic, 0, magic.Length) != magic.Length)
+            if (stream is null)
             {
+                Console.Error.WriteLine("AnimatedImage: stream is null.");
+                renderer = null!;
+                return false;
+            }
+            if (!stream.CanRead)
+            {
+                Console.Error.WriteLine("AnimatedImage: stream does not support reading.");
                 renderer = null!;
                 return false;
             }
 
-            stream.Position = 0;
-            if (Signature.IsGifSignature(magic))
+            var backupPos = stream.Position;
+            var restorePos = false;
+            try
             {
-                var gif = new GifFile(stream);
-                renderer = new GifRenderer(gif, factory);
-                return true;
+                if (!stream.CanSeek)
+                {
+                    var memstream = new MemoryStream();
+                    stream.CopyTo(memstream);
+                    stream = memstream;
+                }
+                restorePos = true;
+
+
+                stream.Position = 0;
+                var magic = new byte[Signature.MaxLength];
+
+                if (stream.Read(magic, 0, magic.Length) != magic.Length)
+                {
+                    renderer = null!;
+                    return false;
+                }
+
+                stream.Position = 0;
+                if (Signature.IsGifSignature(magic))
+                {
+                    var gif = new GifFile(stream);
+                    renderer = new GifRenderer(gif, factory);
+                    restorePos = false;
+                    return true;
+                }
+
+                if (Signature.IsPngSignature(magic))
+                {
+                    var png = new ApngFile(stream);
+                    renderer = new PngRenderer(png, factory);
+                    restorePos = false;
+                    return true;
+                }
+
+                if (Signature.IsWebPSignature(magic) && WebpRenderer.CheckSupport())
+                {
+                    renderer = new WebpRenderer(stream, factory);
+                    restorePos = false;
+                    return true;
+                }
             }
-
-            if (Signature.IsPngSignature(magic))
+            catch (Exception e)
             {
-                var png = new ApngFile(stream);
-
-                renderer = new PngRenderer(png, factory);
-                return true;
+                Console.Error.WriteLine("AnimatedImage: Error occured " + e.GetType());
+                Console.Error.WriteLine(e);
             }
-
-            if (Signature.IsWebPSignature(magic) && WebpRenderer.CheckSupport())
+            finally
             {
-                renderer = new WebpRenderer(stream, factory);
-                return true;
+                if (restorePos)
+                    stream.Position = backupPos;
             }
 
             renderer = null!;
             return false;
         }
-
 
         private static class Signature
         {
@@ -223,9 +261,9 @@ namespace AnimatedImage
             disposedValue = true;
         }
 
-		/// <summary>
-		/// Finalizer: Release unmanaged resource when IDisposable.Dispose is not called.
-		/// </summary>
+        /// <summary>
+        /// Finalizer: Release unmanaged resource when IDisposable.Dispose is not called.
+        /// </summary>
         ~FrameRenderer()
         {
             Dispose(disposing: false);
