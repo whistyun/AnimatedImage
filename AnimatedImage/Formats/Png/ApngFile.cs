@@ -25,13 +25,13 @@ namespace AnimatedImage.Formats.Png
         {
             // check file signature.
             if (!Helper.IsBytesEqual(stream.ReadBytes(ApngFrame.Signature.Length), ApngFrame.Signature))
-                throw new Exception("File signature incorrect.");
+                throw new PngDecoderException("File signature incorrect.");
 
 
             var chunkStream = new ChunkStream(stream);
 
             if (chunkStream.ReadChunkType() != "IHDR")
-                throw new Exception("IHDR chunk must located before any other chunks.");
+                throw new PngDecoderException("IHDR chunk must located before any other chunks.");
 
             // Read IHDR chunk.
             IHDRChunk = new IHDRChunk(chunkStream);
@@ -69,14 +69,14 @@ namespace AnimatedImage.Formats.Png
                 switch (chunkType)
                 {
                     case null:
-                        throw new Exception("IEND chunk expected.");
+                        throw new PngDecoderException("IEND chunk expected.");
 
                     case IHDRChunk.ChunkType:
-                        throw new Exception("Only single IHDR is allowed.");
+                        throw new PngDecoderException("Only single IHDR is allowed.");
 
                     case acTLChunk.ChunkType:
                         if (isSimple)
-                            throw new Exception("acTL chunk must located before any IDAT and fdAT");
+                            throw new PngDecoderException("acTL chunk must located before any IDAT and fdAT");
 
                         acTLChunk = new acTLChunk(chunkStream);
                         break;
@@ -107,7 +107,7 @@ namespace AnimatedImage.Formats.Png
                             isSimple = true;
 
                         if (current is not null && current.IDATChunks.Count == 0)
-                            throw new Exception("One frame must have only one fcTL chunk.");
+                            throw new PngDecoderException("One frame must have only one fcTL chunk.");
 
                         current = new ApngFrame(IHDRChunk, new fcTLChunk(chunkStream));
 
@@ -162,7 +162,7 @@ namespace AnimatedImage.Formats.Png
 
 
             if (defaultImage is null)
-                throw new Exception("has no image");
+                throw new PngDecoderException("has no image");
 
             IsSimplePNG = isSimple;
             DefaultImage = defaultImage;

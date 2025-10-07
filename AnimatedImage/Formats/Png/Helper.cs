@@ -14,7 +14,7 @@ namespace AnimatedImage.Formats.Png
         internal static byte[] ConvertEndian(byte[] i)
         {
             if (i.Length % 2 != 0)
-                throw new Exception("byte array length must multiply of 2");
+                throw new PngDecoderException("byte array length must multiply of 2");
 
             Array.Reverse(i);
 

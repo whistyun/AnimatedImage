@@ -33,10 +33,10 @@ namespace AnimatedImage.Formats.Png
                 return null;
 
             if (_leave != 0)
-                throw new Exception($"'{_chunkType}' reading is not completed (chunkdata).");
+                throw new PngDecoderException($"'{_chunkType}' reading is not completed (chunkdata).");
 
             if (!_isCrcRead)
-                throw new Exception($"'{_chunkType}' reading is not completed (crc).");
+                throw new PngDecoderException($"'{_chunkType}' reading is not completed (crc).");
 
             _leave = Length = (uint)PrivateReadInt32();
             _chunkType = Encoding.ASCII.GetString(_stream.ReadBytes(4));
@@ -119,7 +119,7 @@ namespace AnimatedImage.Formats.Png
 
         private void ThrowEndReached()
         {
-            throw new Exception("End reached");
+            throw new PngDecoderException("End reached");
         }
     }
 }
