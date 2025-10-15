@@ -128,7 +128,7 @@ namespace AnimatedImage
             return renderer is not null;
         }
 
-        public static FrameRenderer? PrivateCreate(
+        private static FrameRenderer? PrivateCreate(
             Stream stream,
             IBitmapFaceFactory factory,
             bool throwIfError)

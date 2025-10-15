@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net9.0-windows</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <LangVersion>10</LangVersion>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
+
+    <PackageReference Include="AnimatedImage.Native" Version="*-*" />
+
+    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="BouncingBeachBallWebP.webp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -103,7 +103,7 @@ namespace DemoForAvaloniaUI.ViewModels
         }
 
         [RelayCommand]
-        public async void OpenFile()
+        public async Task OpenFile()
         {
             var app = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (app is null) return;

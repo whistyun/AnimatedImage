@@ -1,0 +1,20 @@
+<Project>
+  <ItemGroup>
+
+    <_NativeLibs Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x86\native\*.dll">
+      <Dir>x86\</Dir>
+    </_NativeLibs>
+    <_NativeLibs Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\*.dll">
+      <Dir>x64\</Dir>
+    </_NativeLibs>
+    <_NativeLibs Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-arm64\native\*.dll">
+      <Dir>arm64\</Dir>
+    </_NativeLibs>
+
+    <None Include="@(_NativeLibs)">
+      <Link>%(Dir)%(Filename)%(Extension)</Link>
+      <Visible>False</Visible>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
