@@ -9,6 +9,9 @@ namespace AnimatedImage.Avalonia
     /// </summary>
     public record AnimatedImageSourceUri : AnimatedImageSource
     {
+        private bool _tried = false;
+        private Stream? _SourceSeekable;
+
 #if !NETFRAMEWORK
         private static readonly System.Net.Http.HttpClient s_client = new();
 #endif
@@ -25,7 +28,30 @@ namespace AnimatedImage.Avalonia
         }
 
         /// <inheritdoc/>
-        public override Stream? SourceSeekable => OpenFirst()?.SupportSeek();
+        public override Stream? SourceSeekable
+        {
+            get
+            {
+                if (_tried)
+                {
+                    if (_SourceSeekable is not null)
+                        _SourceSeekable.Position = 0;
+
+                    return _SourceSeekable;
+                }
+
+                _tried = true;
+
+                if (UriSource is null)
+                    return null;
+
+                var stream = StaticOpenFirst(UriSource);
+                if (stream is null)
+                    return null;
+
+                return _SourceSeekable = stream.SupportSeek();
+            }
+        }
 
 #if NET5_0_OR_GREATER
         /// <summary>
@@ -33,6 +59,7 @@ namespace AnimatedImage.Avalonia
         /// </summary>
         public AnimatedImageSourceUri() { }
 #endif
+
         /// <summary>
         /// Initializes a new instance
         /// </summary>
@@ -45,18 +72,15 @@ namespace AnimatedImage.Avalonia
         /// <inheritdoc/>
         public override FrameRenderer? TryCreate()
         {
-            if (OpenFirst() is { } stream)
+            if (SourceSeekable is { } stream)
             {
-                var seekableStream = stream.SupportSeek();
                 var factory = new WriteableBitmapFaceFactory();
-                if (FrameRenderer.TryCreate(seekableStream, factory, out var renderer))
+                if (FrameRenderer.TryCreate(stream, factory, out var renderer))
                     return renderer;
             }
 
             return null;
         }
-
-        private Stream? OpenFirst() => UriSource is not null ? StaticOpenFirst(UriSource) : null;
 
         static Stream? StaticOpenFirst(Uri uri)
         {
@@ -66,12 +90,12 @@ namespace AnimatedImage.Avalonia
                     return AssetLoader.Open(uri);
 
 #if NETFRAMEWORK
-                    case "http":
-                    case "https":
-                    case "file":
-                    case "ftp":
-                        var wc = new System.Net.WebClient();
-                        return wc.OpenRead(uri);
+                case "http":
+                case "https":
+                case "file":
+                case "ftp":
+                    var wc = new System.Net.WebClient();
+                    return wc.OpenRead(uri);
 #else
                 case "http":
                 case "https":
