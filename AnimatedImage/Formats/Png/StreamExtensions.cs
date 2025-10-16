@@ -101,7 +101,7 @@ namespace AnimatedImage.Formats.Png
             var buffer = new byte[count];
 
             if (ms.Read(buffer, 0, count) != count)
-                throw new Exception("End reached.");
+                throw new PngDecoderException("End reached.");
 
             return buffer;
         }

@@ -14,7 +14,14 @@
     <file src="win-arm64\*.*"   target="runtimes\win-arm64\native\"   />
     <file src="win-x64\*.*"     target="runtimes\win-x64\native\"     />
     <file src="win-x86\*.*"     target="runtimes\win-x86\native\"     />
-    <file src="AnimatedImage.Native.targets" target="build\AnimatedImage.Native.targets" />
+
+    <file src="AnimatedImage.Native.Framework.targets" target="buildTransitive\net462\AnimatedImage.Native.targets" />
+    <file src="AnimatedImage.Native.Framework.targets" target="buildTransitive\net472\AnimatedImage.Native.targets" />
+
+    <file src="AnimatedImage.Native.Core.targets"      target="buildTransitive\netcoreapp3.1\AnimatedImage.Native.targets" />
+    <file src="AnimatedImage.Native.Core.targets"      target="buildTransitive\net6.0\AnimatedImage.Native.targets" />
+    <file src="AnimatedImage.Native.Core.targets"      target="buildTransitive\net9.0\AnimatedImage.Native.targets" />
+
     <file src="AnimatedImage.Native.md"      target="docs\" />
     <file src="AnimatedImage.Native.License.md" target="licenses" />
   </files>

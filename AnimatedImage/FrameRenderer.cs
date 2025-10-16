@@ -105,6 +105,15 @@ namespace AnimatedImage
         /// </summary>
         /// <param name="stream">File streams, response data, etc.</param>
         /// <param name="factory">A wrapper for image creation and image rendering.</param>
+        /// <returns>created instance.</returns>
+        public static FrameRenderer Create(Stream stream, IBitmapFaceFactory factory)
+            => PrivateCreate(stream, factory, true)!;
+
+        /// <summary>
+        /// Parses the binary stream and creats a FrameRenderer instance.
+        /// </summary>
+        /// <param name="stream">File streams, response data, etc.</param>
+        /// <param name="factory">A wrapper for image creation and image rendering.</param>
         /// <param name="renderer">created instance.</param>
         /// <returns>Returns true if a binary stream is supported.</returns>
         public static bool TryCreate(
@@ -115,17 +124,30 @@ namespace AnimatedImage
 #endif
             out FrameRenderer renderer)
         {
+            renderer = PrivateCreate(stream, factory, false)!;
+            return renderer is not null;
+        }
+
+        private static FrameRenderer? PrivateCreate(
+            Stream stream,
+            IBitmapFaceFactory factory,
+            bool throwIfError)
+        {
             if (stream is null)
             {
+                if (throwIfError)
+                    throw new ArgumentNullException(nameof(stream));
+
                 Console.Error.WriteLine("AnimatedImage: stream is null.");
-                renderer = null!;
-                return false;
+                return null;
             }
             if (!stream.CanRead)
             {
+                if (throwIfError)
+                    throw new ArgumentException("Stream does not support reading.", nameof(stream));
+
                 Console.Error.WriteLine("AnimatedImage: stream does not support reading.");
-                renderer = null!;
-                return false;
+                return null;
             }
 
             var backupPos = stream.Position;
@@ -146,47 +168,56 @@ namespace AnimatedImage
 
                 if (stream.Read(magic, 0, magic.Length) != magic.Length)
                 {
-                    renderer = null!;
-                    return false;
+                    if (throwIfError)
+                        throw new IOException("Cannot read from stream.");
+
+                    Console.Error.WriteLine("AnimatedImage: Cannot read from stream.");
+                    return null;
                 }
 
                 stream.Position = 0;
                 if (Signature.IsGifSignature(magic))
                 {
                     var gif = new GifFile(stream);
-                    renderer = new GifRenderer(gif, factory);
+                    var renderer = new GifRenderer(gif, factory);
                     restorePos = false;
-                    return true;
+                    return renderer;
                 }
 
                 if (Signature.IsPngSignature(magic))
                 {
                     var png = new ApngFile(stream);
-                    renderer = new PngRenderer(png, factory);
+                    var renderer = new PngRenderer(png, factory);
                     restorePos = false;
-                    return true;
+                    return renderer;
                 }
 
                 if (Signature.IsWebPSignature(magic) && WebpRenderer.CheckSupport())
                 {
-                    renderer = new WebpRenderer(stream, factory);
+                    var renderer = new WebpRenderer(stream, factory);
                     restorePos = false;
-                    return true;
+                    return renderer;
                 }
+
+                if (throwIfError)
+                    throw new NotSupportedException("This image format is not supported.");
+
+                return null;
             }
             catch (Exception e)
             {
+                if (throwIfError)
+                    throw;
+
                 Console.Error.WriteLine("AnimatedImage: Error occured " + e.GetType());
                 Console.Error.WriteLine(e);
+                return null;
             }
             finally
             {
                 if (restorePos)
                     stream.Position = backupPos;
             }
-
-            renderer = null!;
-            return false;
         }
 
         private static class Signature
