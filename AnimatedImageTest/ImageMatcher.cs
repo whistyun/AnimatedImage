@@ -9,6 +9,21 @@ namespace AnimatedImageTest
 {
     internal class ImageMatcher
     {
+        public static bool MatchImage(BitmapFace receivedSourceImage, string directoryName, string imageName)
+        {
+            var receivedPath = CreatePath(directoryName, imageName, "received");
+            var approvalPath = CreatePath(directoryName, imageName, "approved");
+
+            SKBitmap approvalImage = Open(approvalPath);
+            {
+                using var outstream = new FileStream(receivedPath, FileMode.Create);
+                receivedSourceImage.Bitmap.Encode(outstream, SKEncodedImageFormat.Png, 0);
+            }
+            SKBitmap receivedImage = Open(receivedPath);
+
+            return MatchImage(approvalImage, receivedImage);
+        }
+
         public static bool MatchImage(BitmapFace receivedSourceImage, string imageName, int frameIndex)
         {
             var receivedPath = CreatePath(imageName, frameIndex, "received");
@@ -24,26 +39,26 @@ namespace AnimatedImageTest
             return MatchImage(approvalImage, receivedImage);
         }
 
-        private static bool MatchImage(SKBitmap img1, SKBitmap img2)
+        private static bool MatchImage(SKBitmap approval, SKBitmap received)
         {
-            if (img1.Width != img2.Width) return false;
-            if (img1.Height != img2.Height) return false;
+            if (approval.Width != received.Width) return false;
+            if (approval.Height != received.Height) return false;
 
-            var bytes1 = ToBytes(img1);
-            var bytes2 = ToBytes(img2);
+            var abytes = ToBytes(approval);
+            var rbytes = ToBytes(received);
 
-            if (bytes1.Length != bytes2.Length)
+            if (abytes.Length != rbytes.Length)
                 return false;
 
-            for (var idx = 0; idx < bytes1.Length; ++idx)
+            for (var idx = 0; idx < abytes.Length; ++idx)
             {
-                if (Math.Abs(bytes1[idx] - bytes2[idx]) > 1)
+                if (Math.Abs(abytes[idx] - rbytes[idx]) > 1)
                 {
                     var shift = idx & 0xFFFFFFFC;
-                    var col1 = (bytes1[shift] << 24) | (bytes1[shift + 1] << 16) | (bytes1[shift + 2] << 8) | bytes1[shift + 3];
-                    var col2 = (bytes2[shift] << 24) | (bytes2[shift + 1] << 16) | (bytes2[shift + 2] << 8) | bytes2[shift + 3];
+                    var acol = (abytes[shift] << 24) | (abytes[shift + 1] << 16) | (abytes[shift + 2] << 8) | abytes[shift + 3];
+                    var rcol = (rbytes[shift] << 24) | (rbytes[shift + 1] << 16) | (rbytes[shift + 2] << 8) | rbytes[shift + 3];
 
-                    var msg = $"unmatch index: {idx}, ({(idx % (4 * img1.Width)) / 4}, {idx / 4 / img1.Width}), color:<{col1.ToString("X8")}><{col2.ToString("X8")}>";
+                    var msg = $"unmatch index: {idx}, ({(idx % (4 * approval.Width)) / 4}, {idx / 4 / approval.Width}), approval_color:{acol.ToString("X8")}, received_color:{rcol.ToString("X8")}";
                     Console.Write(msg);
                     return false;
                 }
@@ -67,10 +82,13 @@ namespace AnimatedImageTest
         }
 
         private static string CreatePath(string imageName, int frameIndex, string label)
+            => CreatePath(imageName, $"{imageName}#{frameIndex.ToString("D2")}", label);
+
+        private static string CreatePath(string directoryName, string imageName, string label)
             => Path.Combine(
                     TestContext.CurrentContext.TestDirectory,
                     "Outputs",
-                    imageName,
-                    $"{imageName}#{frameIndex.ToString("D2")}.{label}.png");
+                    directoryName,
+                    $"{imageName}.{label}.png");
     }
 }

@@ -4,6 +4,7 @@ using AnimatedImage.Formats.Png;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace AnimatedImage.Formats
 {
@@ -16,7 +17,7 @@ namespace AnimatedImage.Formats
 
         private readonly IDATStream _data;
         private readonly bool _hasAlpha;
-        private readonly byte[] _alphaLevel;
+        private readonly byte[] _transTable;
         private readonly byte[] _line;
         private readonly byte[] _scale;
 
@@ -24,16 +25,18 @@ namespace AnimatedImage.Formats
         {
             _data = new IDATStream(file, frame);
 
-            if (file.tRNSChunk is null)
-            {
-                _alphaLevel = new byte[256];
-                for (var i = 0; i < _alphaLevel.Length; ++i)
-                    _alphaLevel[i] = 255;
-            }
-            else
+            _transTable = new byte[256];
+            for (int i = 0; i < 256; ++i)
+                _transTable[i] = (byte)0xFF;
+
+            if (file.tRNSChunk is not null)
             {
                 var trns = (tRNSGrayscaleChunk)file.tRNSChunk;
-                _alphaLevel = trns.AlphaForEachGrayLevel.Select(s => (byte)(s >> 8)).ToArray();
+
+                foreach (var color in trns.AlphaForEachGrayLevel)
+                {
+                    _transTable[color & 0xFF] = 0;
+                }
             }
 
             _line = new byte[_data.Stride];
@@ -71,12 +74,40 @@ namespace AnimatedImage.Formats
                 Array.Copy(work, backup, Width * Height * 4);
             }
 
-            await Task.Factory.StartNew(w => RenderBlock((byte[])w!), work);
+            await Task.Run(() => RenderBlock(work)).ConfigureAwait(false);
 
             bitmap.WriteBGRA(work, X, Y, Width, Height);
         }
 
         private void RenderBlock(byte[] work)
+        {
+            if (_hasAlpha)
+            {
+                switch (BlendMethod)
+                {
+                    case BlendOps.APNGBlendOpSource:
+                        RenderBlockOpSourceAlpha(work);
+                        break;
+                    case BlendOps.APNGBlendOpOver:
+                        RenderBlockOpOverAlpha(work);
+                        break;
+                }
+            }
+            else
+            {
+                switch (BlendMethod)
+                {
+                    case BlendOps.APNGBlendOpSource:
+                        RenderBlockOpSourceNoAlpha(work);
+                        break;
+                    case BlendOps.APNGBlendOpOver:
+                        RenderBlockOpOverNoAlpha(work);
+                        break;
+                }
+            }
+        }
+
+        private void RenderBlockOpSourceAlpha(byte[] work)
         {
             int workIdx = 0;
             for (var i = 0; i < Height; ++i)
@@ -87,56 +118,107 @@ namespace AnimatedImage.Formats
                 int workEdIdx = workIdx + Width * 4;
                 while (workIdx < workEdIdx)
                 {
-                    var val = _line[lineIdx++];
-                    var alpha = _hasAlpha ? _line[lineIdx++] : _alphaLevel[val];
+                    var scaleIndex = _line[lineIdx++];
+                    var alpha = _line[lineIdx++];
+                    var rawVal = _scale[scaleIndex];
 
-                    var scl = _scale[val];
-
-                    if (BlendMethod == BlendOps.APNGBlendOpSource)
-                    {
-                        work[workIdx++] = scl;
-                        work[workIdx++] = scl;
-                        work[workIdx++] = scl;
-                        work[workIdx++] = alpha;
-                    }
-                    else if (BlendMethod == BlendOps.APNGBlendOpOver)
-                    {
-
-                        if (alpha == 0)
-                        {
-                            workIdx += 4;
-                            continue;
-                        }
-                        else if (alpha == 0xFF)
-                        {
-                            work[workIdx++] = scl;
-                            work[workIdx++] = scl;
-                            work[workIdx++] = scl;
-                            work[workIdx++] = alpha;
-                        }
-                        else
-                        {
-                            var overVal = ComputeColorScale(alpha, scl, work[workIdx]); ;
-                            work[workIdx++] = overVal;
-                            work[workIdx++] = overVal;
-                            work[workIdx++] = overVal;
-                            work[workIdx] = ComputeAlphaScale(alpha, work[workIdx]);
-                            ++workIdx;
-                        }
-                    }
+                    // Premulied alpha
+                    var val = (byte)((alpha * rawVal * 2 + 255) / 255 / 2);
+                    work[workIdx++] = val;
+                    work[workIdx++] = val;
+                    work[workIdx++] = val;
+                    work[workIdx++] = alpha;
                 }
             }
             _data.Reset();
         }
 
-        static byte ComputeColorScale(byte sa, byte sv, byte dv)
+        private void RenderBlockOpOverAlpha(byte[] work)
+        {
+            int workIdx = 0;
+            for (var i = 0; i < Height; ++i)
+            {
+                _data.DecompressLine(_line, 0, _line.Length);
+
+                int lineIdx = 0;
+                int workEdIdx = workIdx + Width * 4;
+                while (workIdx < workEdIdx)
+                {
+                    var scaleIndex = _line[lineIdx++];
+                    var alpha = _line[lineIdx++];
+                    var rawVal = _scale[scaleIndex];
+                    var overVal = ComputeColorScale(alpha, rawVal, work[workIdx]);
+                    work[workIdx++] = overVal;
+                    work[workIdx++] = overVal;
+                    work[workIdx++] = overVal;
+                    work[workIdx] = ComputeAlphaScale(alpha, work[workIdx]);
+                    ++workIdx;
+                }
+            }
+            _data.Reset();
+        }
+
+        private void RenderBlockOpSourceNoAlpha(byte[] work)
+        {
+            int workIdx = 0;
+            for (var i = 0; i < Height; ++i)
+            {
+                _data.DecompressLine(_line, 0, _line.Length);
+
+                int lineIdx = 0;
+                int workEdIdx = workIdx + Width * 4;
+                while (workIdx < workEdIdx)
+                {
+                    var scaleIndex = _line[lineIdx++];
+                    var alpha = _transTable[scaleIndex];
+                    var rawVal = _scale[scaleIndex];
+
+                    // Premulied alpha
+                    var val = (byte)((alpha * rawVal * 2 + 255) / 255 / 2);
+                    work[workIdx++] = val;
+                    work[workIdx++] = val;
+                    work[workIdx++] = val;
+                    work[workIdx++] = alpha;
+                }
+            }
+            _data.Reset();
+        }
+
+        private void RenderBlockOpOverNoAlpha(byte[] work)
+        {
+            int workIdx = 0;
+            for (var i = 0; i < Height; ++i)
+            {
+                _data.DecompressLine(_line, 0, _line.Length);
+
+                int lineIdx = 0;
+                int workEdIdx = workIdx + Width * 4;
+                while (workIdx < workEdIdx)
+                {
+                    var scaleIndex = _line[lineIdx++];
+                    var alpha = _transTable[scaleIndex];
+                    var rawVal = _scale[scaleIndex];
+                    var overVal = ComputeColorScale(alpha, rawVal, work[workIdx]);
+                    work[workIdx++] = overVal;
+                    work[workIdx++] = overVal;
+                    work[workIdx++] = overVal;
+                    work[workIdx] = ComputeAlphaScale(alpha, work[workIdx]);
+                    ++workIdx;
+                }
+            }
+            _data.Reset();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte ComputeColorScale(byte sa, byte sv, byte dv)
         {
             var val = sa * sv + (255 - sa) * dv;
             val = (val * 2 + 255) / 255 / 2;
             return (byte)val;
         }
 
-        static byte ComputeAlphaScale(byte sa, byte dv)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte ComputeAlphaScale(byte sa, byte dv)
         {
             // work[workIdx] = (byte)(alpha + work[workIdx] * (255 - alpha) / 255);
             var val = ((255 - sa) * dv * 2 + 255) / 255 / 2;
