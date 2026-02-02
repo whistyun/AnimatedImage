@@ -91,15 +91,7 @@ namespace AnimatedImage.Formats
             }
             else
             {
-                switch (BlendMethod)
-                {
-                    case BlendOps.APNGBlendOpSource:
-                        RenderBlockOpSourceNoAlpha(work);
-                        break;
-                    case BlendOps.APNGBlendOpOver:
-                        RenderBlockOpOverNoAlpha(work);
-                        break;
-                }
+                RenderBlockNoAlpha(work);
             }
         }
 
@@ -121,10 +113,26 @@ namespace AnimatedImage.Formats
                     var b = _line[lineIdx++];
                     var alpha = _line[lineIdx++];
 
-                    work[workIdx++] = s_divide255[(alpha * b + 127) & 0xFFFF];
-                    work[workIdx++] = s_divide255[(alpha * g + 127) & 0xFFFF];
-                    work[workIdx++] = s_divide255[(alpha * r + 127) & 0xFFFF];
-                    work[workIdx++] = alpha;
+                    switch (alpha)
+                    {
+                        case 0:
+                            workIdx += 4;
+                            break;
+
+                        case 255:
+                            work[workIdx++] = b;
+                            work[workIdx++] = g;
+                            work[workIdx++] = r;
+                            work[workIdx++] = 255;
+                            break;
+
+                        default:
+                            work[workIdx++] = s_divide255[(alpha * b + 127) & 0xFFFF];
+                            work[workIdx++] = s_divide255[(alpha * g + 127) & 0xFFFF];
+                            work[workIdx++] = s_divide255[(alpha * r + 127) & 0xFFFF];
+                            work[workIdx++] = alpha;
+                            break;
+                    }
                 }
             }
             _data.Reset();
@@ -148,17 +156,33 @@ namespace AnimatedImage.Formats
                     var b = _line[lineIdx++];
                     var alpha = _line[lineIdx++];
 
-                    work[workIdx] = ComputeColorScale(alpha, b, work[workIdx]); ++workIdx;
-                    work[workIdx] = ComputeColorScale(alpha, g, work[workIdx]); ++workIdx;
-                    work[workIdx] = ComputeColorScale(alpha, r, work[workIdx]); ++workIdx;
-                    work[workIdx] = ComputeAlphaScale(alpha, work[workIdx]);
-                    ++workIdx;
+                    switch (alpha)
+                    {
+                        case 0:
+                            workIdx += 4;
+                            break;
+
+                        case 255:
+                            work[workIdx++] = b;
+                            work[workIdx++] = g;
+                            work[workIdx++] = r;
+                            work[workIdx++] = 255;
+                            break;
+
+                        default:
+                            work[workIdx] = ComputeColorScale(alpha, b, work[workIdx]); ++workIdx;
+                            work[workIdx] = ComputeColorScale(alpha, g, work[workIdx]); ++workIdx;
+                            work[workIdx] = ComputeColorScale(alpha, r, work[workIdx]); ++workIdx;
+                            work[workIdx] = ComputeAlphaScale(alpha, work[workIdx]);
+                            ++workIdx;
+                            break;
+                    }
                 }
             }
             _data.Reset();
         }
 
-        private void RenderBlockOpSourceNoAlpha(byte[] work)
+        private void RenderBlockNoAlpha(byte[] work)
         {
             int workIdx = 0;
             int stride = _stride;
@@ -174,44 +198,18 @@ namespace AnimatedImage.Formats
                     var r = _line[lineIdx++];
                     var g = _line[lineIdx++];
                     var b = _line[lineIdx++];
-                    var alpha = _transparencyColor.Contains((r << 16) | (g << 8) | b) ?
-                                    (byte)0 :
-                                    (byte)255;
 
-                    work[workIdx++] = s_divide255[(alpha * b + 127) & 0xFFFF];
-                    work[workIdx++] = s_divide255[(alpha * g + 127) & 0xFFFF];
-                    work[workIdx++] = s_divide255[(alpha * r + 127) & 0xFFFF];
-                    work[workIdx++] = alpha;
-                }
-            }
-            _data.Reset();
-        }
-
-        private void RenderBlockOpOverNoAlpha(byte[] work)
-        {
-            int workIdx = 0;
-            int stride = _stride;
-            for (var i = 0; i < Height; ++i)
-            {
-                _data.DecompressLine(_line, 0, _line.Length);
-
-                int lineIdx = 0;
-                int workEdIdx = workIdx + stride;
-
-                while (workIdx < workEdIdx)
-                {
-                    var r = _line[lineIdx++];
-                    var g = _line[lineIdx++];
-                    var b = _line[lineIdx++];
-                    var alpha = _transparencyColor.Contains((r << 16) | (g << 8) | b) ?
-                                    (byte)0 :
-                                    (byte)255;
-
-                    work[workIdx] = ComputeColorScale(alpha, b, work[workIdx]); ++workIdx;
-                    work[workIdx] = ComputeColorScale(alpha, g, work[workIdx]); ++workIdx;
-                    work[workIdx] = ComputeColorScale(alpha, r, work[workIdx]); ++workIdx;
-                    work[workIdx] = ComputeAlphaScale(alpha, work[workIdx]);
-                    ++workIdx;
+                    if (_transparencyColor.Contains((r << 16) | (g << 8) | b))
+                    {
+                        workIdx += 4;
+                    }
+                    else
+                    {
+                        work[workIdx++] = b;
+                        work[workIdx++] = g;
+                        work[workIdx++] = r;
+                        work[workIdx++] = 255;
+                    }
                 }
             }
             _data.Reset();
