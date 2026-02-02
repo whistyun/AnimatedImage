@@ -1,9 +1,9 @@
 ﻿#if NET6_0_OR_GREATER
-using System.IO.Compression;
+using CompressionMode = System.IO.Compression.CompressionMode;
 using ZlibStream = System.IO.Compression.ZLibStream;
 #else
-using SharpCompress.Compressors;
-using SharpCompress.Compressors.Deflate;
+using CompressionMode = SharpCompress.Compressors.CompressionMode;
+using ZlibStream = SharpCompress.Compressors.Deflate.ZlibStream;
 #endif
 
 using System;
@@ -14,14 +14,19 @@ using System.Text;
 using System.Threading.Tasks;
 using AnimatedImage.Formats.Png.Chunks;
 using AnimatedImage.Formats.Png.Types;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Drawing;
 
 namespace AnimatedImage.Formats.Png
 {
-    internal class IDATStream
+    internal class IDATStream : IDisposable
     {
         private readonly int _dimension;
         private readonly ByteBuffer _buffer;
         private readonly byte[] _prevLine;
+
+        private readonly int _bitMsk;
 
         public int Stride { get; }
 
@@ -35,6 +40,17 @@ namespace AnimatedImage.Formats.Png
 
             var mem = new MultiMemoryStream(frame.IDATChunks.Select(chunk => chunk.FrameData));
             _buffer = ByteBuffer.Create(mem, header.BitDepth);
+
+            _bitMsk = header.BitDepth switch
+            {
+                1 => 0b00000001,
+                2 => 0b00000011,
+                4 => 0b00001111,
+                8 => 0b11111111,
+                16 => 0xFFFF,
+                _ => throw new ArgumentException("unsupported bit depth")
+            };
+
 
             _dimension = header.ColorType switch
             {
@@ -55,147 +71,151 @@ namespace AnimatedImage.Formats.Png
 
         public void Reset()
         {
+#if NET6_0_OR_GREATER
+            Array.Clear(_prevLine, 0, _prevLine.Length);
+#else
             for (var i = 0; i < _prevLine.Length; ++i)
                 _prevLine[i] = 0;
-
+#endif
             _buffer.Reset();
         }
 
         public void DecompressLine(byte[] bytes, int offset, int length)
         {
-            if (offset < 0)
+            var start = offset;
+            var end = offset + length;
+
+            if (start < 0)
                 throw new ArgumentException("offset is less than 0");
 
-            if (offset + length > bytes.Length)
+            if (end > bytes.Length)
                 throw new ArgumentException("offset+length is too long");
 
-            if (length > _prevLine.Length)
+            if (length > _prevLine.Length || length < 0)
                 throw new ArgumentException("bad length");
 
             if (length == 0)
                 return;
 
-            _buffer.Read(bytes, offset, 1);
+            var d = _dimension;
+            var prevs = _prevLine;
 
-            var filter = (FilterMethod)bytes[offset];
+            var filterByte = _buffer.ReadRawByte();
+            if (filterByte == -1)
+                throw new EndOfStreamException("Failed to read filter method");
 
-            _buffer.Read(bytes, offset, length);
+            var len = _buffer.ReadLine(bytes, offset, length);
 
-            switch (filter)
+            if (len < length)
+                throw new EndOfStreamException("Failed to read compressed data");
+
+            var mask = _bitMsk;
+            switch ((FilterMethod)filterByte)
             {
                 case FilterMethod.None:
                     break;
 
                 case FilterMethod.Sub:
-                    for (var i = offset + _dimension; i < offset + length; ++i)
-                        bytes[i] = (byte)(bytes[i] + bytes[i - _dimension]);
+                    for (int i = start + d; i < end; ++i)
+                        bytes[i] = (byte)((bytes[i] + bytes[i - d]) & mask);
                     break;
 
                 case FilterMethod.Up:
-                    for (var i = 0; i < length; ++i)
-                        bytes[i + offset] = (byte)(bytes[i + offset] + _prevLine[i]);
+                    for (int i = start, prevI = 0; i < end; ++i, ++prevI)
+                        bytes[i] = (byte)((bytes[i] + prevs[prevI]) & mask);
                     break;
 
                 case FilterMethod.Average:
-                    for (var i = 0; i < _dimension; ++i)
+                    for (int i = start, prevI = 0; i < start + d; ++i, ++prevI)
                     {
-                        bytes[i + offset] = (byte)(bytes[i + offset] + (_prevLine[i] >> 1));
+                        bytes[i] = (byte)((bytes[i] + (prevs[prevI] >> 1)) & mask);
                     }
-                    for (var i = _dimension; i < length; ++i)
+                    for (int i = start + d, prevI = d; i < end; ++i, ++prevI)
                     {
-                        var avg = (bytes[i + offset - _dimension] + _prevLine[i]) >> 1;
-                        bytes[i + offset] = (byte)(bytes[i + offset] + avg);
+                        int avg = (bytes[i - d] + prevs[prevI]) >> 1;
+                        bytes[i] = (byte)((bytes[i] + avg) & mask);
                     }
                     break;
 
                 case FilterMethod.Paeth:
-                    for (var i = 0; i < _dimension; ++i)
+                    for (int i = start, prevI = 0; i < start + d; ++i, ++prevI)
                     {
-                        bytes[i + offset] = (byte)(bytes[i + offset] + Paeth(0, _prevLine[i], 0));
+                        var val = Paeth(0, prevs[prevI], 0);
+                        bytes[i] = (byte)((bytes[i] + val) & mask);
+
                     }
-                    for (var i = _dimension; i < length; ++i)
+                    for (int i = start + d, prevI = d; i < end; ++i, ++prevI)
                     {
-                        var val = Paeth(bytes[i + offset - _dimension], _prevLine[i], _prevLine[i - _dimension]);
-                        bytes[i + offset] = (byte)(bytes[i + offset] + val);
+                        var val = Paeth(bytes[i - d], prevs[prevI], prevs[prevI - d]);
+                        bytes[i] = (byte)((bytes[i] + val) & mask);
                     }
                     break;
 
             }
 
-            Array.Copy(bytes, offset, _prevLine, 0, length);
+            Buffer.BlockCopy(bytes, offset, prevs, 0, length);
 
-            static byte Paeth(byte a, byte b, byte c)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static int Paeth(int a, int b, int c)
             {
                 //
                 // c | b
                 // -----
                 // a | ?
                 //
+                int p = a + b - c;
+                int pa = p - a; if (pa < 0) pa = -pa;
+                int pb = p - b; if (pb < 0) pb = -pb;
+                int pc = p - c; if (pc < 0) pc = -pc;
 
-                int pa = Math.Abs(b - c);
-                int pb = Math.Abs(a - c);
-                int pc = Math.Abs(a + b - 2 * c);
+                if (pa <= pb)
+                {
+                    if (pa <= pc)
+                        return a;
 
-                return (pa <= pb && pa <= pc) ? a :
-                       (pb <= pc) ? b :
-                       c;
+                    // pc < pa <= pb
+                    else
+                        return c;
+                }
+                else if (pb <= pc)
+                    return b;
+
+                else
+                    return c;
             }
         }
 
+        public void Dispose() => _buffer.Dispose();
 
-        internal abstract class ByteBuffer
+        internal abstract class ByteBuffer : IDisposable
         {
-            private int _idx;
-            private int _length;
-            private readonly byte[] _buffer;
             private readonly MultiMemoryStream _memoryStream;
             private ZlibStream _stream;
 
-
             protected ByteBuffer(MultiMemoryStream stream)
             {
-
                 _memoryStream = stream;
                 _stream = new ZlibStream(_memoryStream, CompressionMode.Decompress);
-
-                _idx = _length = 0;
-                _buffer = new byte[1 << 10];
             }
 
             public virtual void Reset()
             {
-                _idx = _length = 0;
+                _stream.Dispose();
                 _memoryStream.Reset();
                 _stream = new ZlibStream(_memoryStream, CompressionMode.Decompress);
             }
 
-            public int Read8(byte[] array, int offset, int length)
+            //public abstract void ResetLine();
+
+            public int ReadRawByte() => _stream.ReadByte();
+
+            public int ReadRawBytes(byte[] array, int offset, int length)
             {
-                var capacity = _length - _idx;
-
-                if (capacity == 0)
-                {
-                    return ReadFromZlibStream(_stream, array, offset, length);
-                }
-                if (capacity >= length)
-                {
-                    Array.Copy(_buffer, _idx, array, offset, length);
-                    _idx += length;
-
-                    return length;
-                }
-                else
-                {
-                    Array.Copy(_buffer, _idx, array, offset, capacity);
-                    _idx = _length;
-
-                    return ReadFromZlibStream(_stream, array, offset + capacity, length - capacity) + capacity;
-                }
+                return ReadFromZlibStream(_stream, array, offset, length);
             }
 
             private int ReadFromZlibStream(ZlibStream stream, byte[] array, int offset, int length)
             {
-#if NET6_0_OR_GREATER
                 int totalRead = 0;
                 while (totalRead < length)
                 {
@@ -204,12 +224,9 @@ namespace AnimatedImage.Formats.Png
                     totalRead += bytesRead;
                 }
                 return totalRead;
-#else
-                return stream.Read(array, offset, length);
-#endif
             }
 
-            public abstract int Read(byte[] array, int offset, int length);
+            public abstract int ReadLine(byte[] array, int offset, int length);
 
             public static ByteBuffer Create(MultiMemoryStream stream, byte depth)
                 => depth switch
@@ -221,49 +238,29 @@ namespace AnimatedImage.Formats.Png
                     16 => new ByteBuffer16(stream),
                     _ => throw new ArgumentException()
                 };
+
+            public void Dispose()
+            {
+                _stream?.Dispose();
+            }
         }
 
         internal class ByteBuffer1 : ByteBuffer
         {
-            private int _subidx;
-            private readonly byte[] _sub;
-
             public ByteBuffer1(MultiMemoryStream stream) : base(stream)
             {
-                _sub = new byte[8];
-                _subidx = _sub.Length;
             }
 
-            public override void Reset()
+            public override int ReadLine(byte[] array, int offset, int length)
             {
-                base.Reset();
-                _subidx = 0;
-            }
-
-            public override int Read(byte[] array, int offset, int length)
-            {
-                var capacity = _sub.Length - _subidx;
-
-                if (length <= capacity)
-                {
-                    Array.Copy(_sub, _subidx, array, offset, length);
-                    _subidx += length;
-                    return length;
-                }
-
-                if (capacity != 0)
-                {
-                    Array.Copy(_sub, _subidx, array, offset, capacity);
-                    _subidx = _sub.Length;
-                    offset += capacity;
-                    length -= capacity;
-                }
-
+                // Reads in 8-bit units and expand each 1 bit individually.
+                // To conserve memory, the end of the destination array is used as the working area.
                 var aryCopyLen = length >> 3;
+                var leftLength = length & 0b00000111;
                 if (aryCopyLen > 0)
                 {
-                    int spareIdx = length - aryCopyLen;
-                    var readLen = Read8(array, spareIdx, aryCopyLen);
+                    int spareIdx = offset + length - aryCopyLen;
+                    var readLen = ReadRawBytes(array, spareIdx, aryCopyLen);
 
                     for (var leave = readLen; leave > 0; --leave)
                     {
@@ -279,75 +276,42 @@ namespace AnimatedImage.Formats.Png
                     }
 
                     if (readLen != aryCopyLen)
-                        return capacity + readLen;
-
-                    capacity += readLen;
-                    length -= readLen;
+                        return readLen << 3;
                 }
 
-                if (Read(_sub, 0, 1) != 0)
+                // 7bits or less remaining,
+                // Read 8 bits into temporary array.
+                if (leftLength != 0)
                 {
-                    var val = _sub[0];
-                    _sub[0] = (byte)((val & 0b10000000) >> 7);
-                    _sub[1] = (byte)((val & 0b01000000) >> 6);
-                    _sub[2] = (byte)((val & 0b00100000) >> 5);
-                    _sub[3] = (byte)((val & 0b00010000) >> 4);
-                    _sub[4] = (byte)((val & 0b00001000) >> 3);
-                    _sub[5] = (byte)((val & 0b00000100) >> 2);
-                    _sub[6] = (byte)((val & 0b00000010) >> 1);
-                    _sub[7] = (byte)((val & 0b00000001));
-                    _subidx = 0;
+                    int val = ReadRawByte();
+
+                    if (val == -1)
+                        return length - leftLength;
+
+                    for (var i = 0; i < leftLength; ++i)
+                        array[offset++] = (byte)((val >> (7 - i)) & 0b1);
                 }
-                else return capacity;
 
-                Array.Copy(_sub, _subidx, array, offset, length);
-                _subidx += length;
-
-                return capacity + length;
+                return length;
             }
         }
 
         internal class ByteBuffer2 : ByteBuffer
         {
-            private int _subidx;
-            private readonly byte[] _sub;
-
             public ByteBuffer2(MultiMemoryStream stream) : base(stream)
             {
-                _sub = new byte[4];
-                _subidx = _sub.Length;
             }
 
-            public override void Reset()
+            public override int ReadLine(byte[] array, int offset, int length)
             {
-                base.Reset();
-                _subidx = 0;
-            }
-
-            public override int Read(byte[] array, int offset, int length)
-            {
-                var capacity = _sub.Length - _subidx;
-
-                if (length <= capacity)
-                {
-                    Array.Copy(_sub, _subidx, array, offset, length);
-                    _subidx += length;
-                    return length;
-                }
-
-                if (capacity != 0)
-                {
-                    Array.Copy(_sub, _subidx, array, offset, capacity);
-                    _subidx = _sub.Length;
-                    offset += capacity;
-                    length -= capacity;
-                }
-
-                var aryCopyLen = length >> 3;
+                // Reads in 8-bit units and expand each 2 bits individually.
+                // To conserve memory, the end of the destination array is used as the working area.
+                var aryCopyLen = length >> 2;
+                int leftLength = length & 0b00000011;
                 if (aryCopyLen > 0)
                 {
-                    int spareIdx = length - aryCopyLen;
-                    var readLen = Read8(array, spareIdx, aryCopyLen);
+                    int spareIdx = offset + length - aryCopyLen;
+                    var readLen = ReadRawBytes(array, spareIdx, aryCopyLen);
 
                     for (var leave = readLen; leave > 0; --leave)
                     {
@@ -359,71 +323,42 @@ namespace AnimatedImage.Formats.Png
                     }
 
                     if (readLen != aryCopyLen)
-                        return capacity + readLen;
-
-                    capacity += readLen;
-                    length -= readLen;
+                        return readLen << 2;
                 }
 
-                if (Read(_sub, 0, 1) != 0)
+                // 6bits or less remaining,
+                // Read 8 bits into temporary array.
+                if (leftLength != 0)
                 {
-                    var val = _sub[0];
-                    _sub[0] = (byte)((val & 0b11000000) >> 6);
-                    _sub[1] = (byte)((val & 0b00110000) >> 4);
-                    _sub[2] = (byte)((val & 0b00001100) >> 2);
-                    _sub[3] = (byte)((val & 0b00000011));
-                    _subidx = 0;
+                    int val = ReadRawByte();
+
+                    if (val == -1)
+                        return length - leftLength;
+
+                    for (var i = 0; i < leftLength << 1; i += 2)
+                        array[offset++] = (byte)((val >> (6 - i)) & 0b11);
                 }
-                else return capacity;
 
-                Array.Copy(_sub, _subidx, array, offset, length);
-                _subidx += length;
-
-                return capacity + length;
+                return length;
             }
         }
 
         internal class ByteBuffer4 : ByteBuffer
         {
-            private int _subidx;
-            private readonly byte[] _sub;
-
             public ByteBuffer4(MultiMemoryStream stream) : base(stream)
             {
-                _sub = new byte[2];
-                _subidx = _sub.Length;
             }
 
-            public override void Reset()
+            public override int ReadLine(byte[] array, int offset, int length)
             {
-                base.Reset();
-                _subidx = 0;
-            }
-
-            public override int Read(byte[] array, int offset, int length)
-            {
-                var capacity = _sub.Length - _subidx;
-
-                if (length <= capacity)
-                {
-                    Array.Copy(_sub, _subidx, array, offset, length);
-                    _subidx += length;
-                    return length;
-                }
-
-                if (capacity != 0)
-                {
-                    Array.Copy(_sub, _subidx, array, offset, capacity);
-                    _subidx = _sub.Length;
-                    offset += capacity;
-                    length -= capacity;
-                }
-
+                // Reads in 8-bit units and expand each 4 bits individually.
+                // To conserve memory, the end of the destination array is used as the working area.
                 var aryCopyLen = length >> 1;
+                int leftLength = length & 0b00000001;
                 if (aryCopyLen > 0)
                 {
-                    int spareIdx = length - aryCopyLen;
-                    var readLen = Read8(array, spareIdx, aryCopyLen);
+                    int spareIdx = offset + length - aryCopyLen;
+                    var readLen = ReadRawBytes(array, spareIdx, aryCopyLen);
 
                     for (var leave = readLen; leave > 0; --leave)
                     {
@@ -433,25 +368,22 @@ namespace AnimatedImage.Formats.Png
                     }
 
                     if (readLen != aryCopyLen)
-                        return capacity + readLen;
-
-                    capacity += readLen;
-                    length -= readLen;
+                        return readLen << 1;
                 }
 
-                if (Read8(_sub, 0, 1) != 0)
+                // 4bits or less remaining,
+                // Read 8 bits into temporary array.
+                if (leftLength != 0)
                 {
-                    var val = _sub[0];
-                    _sub[0] = (byte)((val & 0b11110000) >> 4);
-                    _sub[1] = (byte)((val & 0b00001111));
-                    _subidx = 0;
+                    int val = ReadRawByte();
+
+                    if (val == -1)
+                        return length - leftLength;
+
+                    array[offset++] = (byte)((val & 0b11110000) >> 4);
                 }
-                else return capacity;
 
-                Array.Copy(_sub, _subidx, array, offset, length);
-                _subidx += length;
-
-                return capacity + length;
+                return length;
             }
         }
 
@@ -459,7 +391,8 @@ namespace AnimatedImage.Formats.Png
         {
             public ByteBuffer8(MultiMemoryStream stream) : base(stream) { }
 
-            public override int Read(byte[] array, int offset, int length) => Read8(array, offset, length);
+            public override int ReadLine(byte[] array, int offset, int length)
+                => ReadRawBytes(array, offset, length);
         }
 
         internal class ByteBuffer16 : ByteBuffer
@@ -468,7 +401,7 @@ namespace AnimatedImage.Formats.Png
 
             public ByteBuffer16(MultiMemoryStream stream) : base(stream) { }
 
-            public override int Read(byte[] array, int offset, int length)
+            public override int ReadLine(byte[] array, int offset, int length)
             {
                 if (_buffer.Length < length * 2)
                 {
@@ -480,7 +413,7 @@ namespace AnimatedImage.Formats.Png
                 // for example If 0xFF00 is declared as transparency color,
                 // 0xFF01 - 0xFFFF are treated as transparency color.
 
-                var readLen = Read8(_buffer, 0, length * 2);
+                var readLen = ReadRawBytes(_buffer, 0, length * 2);
 
                 for (var i = 0; i < readLen / 2; ++i)
                 {
@@ -522,7 +455,7 @@ namespace AnimatedImage.Formats.Png
                     if (pos >= Length)
                     {
                         _position = Length;
-                        _current = _arrays.Last();
+                        _current = _arrays[_arrays.Length - 1];
                         _currentIdx = _current.Length;
                         _rangeStart = Length - _current.Length;
                         _rangeEnd = Length;
@@ -601,18 +534,47 @@ namespace AnimatedImage.Formats.Png
 
             public override int Read(byte[] buffer, int offset, int count)
             {
-                int i = offset;
-                while (i < offset + count)
+                if (buffer == null)
+                    throw new ArgumentNullException(nameof(buffer));
+                if (offset < 0 || count < 0 || offset + count > buffer.Length)
+                    throw new ArgumentOutOfRangeException();
+
+                if (count == 0)
+                    return 0;
+
+                int remaining = count;
+                int written = 0;
+
+                while (remaining > 0 && Position < Length)
                 {
-                    var b = ReadByte();
+                    if (_currentIdx >= _current.Length)
+                    {
+                        if (_arraysIdx < _arrays.Length - 1)
+                        {
+                            _current = _arrays[++_arraysIdx];
+                            _currentIdx = 0;
 
-                    if (b == -1)
-                        return i - offset;
+                            _rangeStart = Position;
+                            _rangeEnd = _rangeStart + _current.Length;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
 
-                    buffer[i++] = (byte)b;
+                    int avail = _current.Length - _currentIdx;
+                    int toCopy = avail <= remaining ? avail : remaining;
+
+                    Array.Copy(_current, _currentIdx, buffer, offset + written, toCopy);
+
+                    _currentIdx += toCopy;
+                    _position += toCopy;
+                    written += toCopy;
+                    remaining -= toCopy;
                 }
 
-                return count;
+                return written;
             }
 
             public override long Seek(long offset, SeekOrigin origin)

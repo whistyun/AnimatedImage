@@ -62,7 +62,10 @@ namespace AnimatedImage.Avalonia
                         AnimationStyle.Setup(image, speedRatio, behavior, renderer);
 
                     if (animatedSource.SourceSeekable is Stream stream)
+                    {
+                        stream.Position = 0;
                         image.Source = new Bitmap(stream);
+                    }
                 }
             }
         }
