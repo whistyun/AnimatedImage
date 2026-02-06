@@ -238,8 +238,8 @@ namespace AnimatedImage
                     if (signature[i] != GifHead[i])
                         return false;
 
-                // 8 or 9
-                if (signature[4] != '8' && signature[4] != '9')
+                // 7 or 8 or 9
+                if (signature[4] != '7' && signature[4] != '8' && signature[4] != '9')
                     return false;
 
                 // a
