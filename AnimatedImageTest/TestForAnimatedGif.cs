@@ -87,6 +87,25 @@ namespace AnimatedImageTest
             }
         }
 
+        [Test]
+        [TestCase("earth_87a.gif")]
+        [TestCase("earth_87a_intl.gif")]
+        [TestCase("earth_89a.gif")]
+        [TestCase("earth_89a_intl.gif")]
+        public void FormatTest(string filename)
+        {
+            var imageStream = Open(filename);
+            var renderer = FrameRenderer.Create(imageStream, new BitmapFaceFactory());
+
+            renderer.ProcessFrame(0);
+
+            var imageName = Path.GetFileNameWithoutExtension(filename);
+            if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, "GifFormatTest", imageName))
+            {
+                Assert.Fail($"Frame unmatch: '{filename}'");
+            }
+        }
+
         public static Stream Open(string imagefilename)
         {
             var path = $"AnimatedImageTest.Inputs.{imagefilename}";
