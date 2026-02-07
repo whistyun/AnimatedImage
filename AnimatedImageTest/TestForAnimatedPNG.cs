@@ -84,7 +84,7 @@ namespace AnimatedImageTest
         [TestCase("BouncingBeachBall-color4-depth16.png")]
         [TestCase("BouncingBeachBall-color6-depth8.png")]
         [TestCase("BouncingBeachBall-color6-depth16.png")]
-        public void DecodeTest(string filename)
+        public void FormatTest(string filename)
         {
             var imageStream = Open(filename);
             var pngfile = new ApngFile(imageStream);
@@ -93,7 +93,7 @@ namespace AnimatedImageTest
             renderer.ProcessFrame(0);
 
             var imageName = Path.GetFileNameWithoutExtension(filename);
-            if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, "DecodeTest", imageName))
+            if (!ImageMatcher.MatchImage((BitmapFace)renderer.Current, "PngFormatTest", imageName))
             {
                 Assert.Fail($"Frame unmatch: '{filename}'");
             }
