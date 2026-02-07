@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net462;net472;netcoreapp3.1;net6.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <LangVersion>10</LangVersion>
+    <IsPackable>false</IsPackable>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\AnimatedImage.snk</AssemblyOriginatorKeyFile>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="ApprovalTests" Version="5.2.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="coverlet.collector" Version="3.1.2" />
+
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnimatedImage\AnimatedImage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AnimatedImageTest\BitmapFace.cs" Link="BitmapFace.cs" />
+    <Compile Include="..\AnimatedImageTest\BitmapFaceFactory.cs" Link="BitmapFaceFactory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource 
+      Include="..\AnimatedImageTest\Inputs\BouncingBeachBallWebP.webp" 
+      Link="Inputs\BouncingBeachBallWebP.webp"
+    />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\AnimatedImage.Native\win-x64\libsharpyuv.dll"          Link="Libs\libsharpyuv.dll"        CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="..\AnimatedImage.Native\win-x64\libwebp.dll"              Link="Libs\libwebp.dll"            CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="..\AnimatedImage.Native\win-x64\libwebpdemux.dll"         Link="Libs\libwebpdemux.dll"       CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+</Project>

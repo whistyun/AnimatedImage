@@ -43,6 +43,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHubAction", "GitHubActio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheckPerformance", "CheckPerformance\CheckPerformance.csproj", "{ACE9370B-A15B-4E96-BF40-54B27CC831FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimatedImageTestNative", "AnimatedImageTestNative\AnimatedImageTestNative.csproj", "{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,14 @@ Global
 		{ACE9370B-A15B-4E96-BF40-54B27CC831FF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ACE9370B-A15B-4E96-BF40-54B27CC831FF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{ACE9370B-A15B-4E96-BF40-54B27CC831FF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5E3AB213-1376-4D26-B2DE-1F7B7205BBF6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
