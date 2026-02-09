@@ -100,7 +100,7 @@ namespace AnimatedImage.Formats
 
             WebPAnimDecoderOptions dec_options = new WebPAnimDecoderOptions();
             var result = WebpWrapper.WebPAnimDecoderOptionsInit(ref dec_options);
-            dec_options.color_mode = WEBP_CSP_MODE.MODE_BGRA;
+            dec_options.color_mode = WEBP_CSP_MODE.MODE_bgrA;
             dec_options.use_threads = 1;
             WebPData webp_data = new WebPData
             {

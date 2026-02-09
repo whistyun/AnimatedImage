@@ -13,6 +13,19 @@
   <Window.DataContext>
     <vm:MainWindowViewModel/>
   </Window.DataContext>
+      <Window.Resources>
+        <VisualBrush x:Key="CheckerPatternBrush" TileMode="Tile"
+                      SourceRect="0,0,20,20" DestinationRect="0,0,20,20" >
+            <VisualBrush.Visual>
+                <Canvas Width="20" Height="20">
+                    <Rectangle Fill="#666666" Width="10" Height="10"/>
+                    <Rectangle Fill="#666666" Width="10" Height="10" Canvas.Left="10"  Canvas.Top="10"/>
+                    <Rectangle Fill="#999999" Width="10" Height="10" Canvas.Left="10"/>
+                    <Rectangle Fill="#999999" Height="10" Width="10" Canvas.Top="10"/>
+                </Canvas>
+            </VisualBrush.Visual>
+        </VisualBrush>
+    </Window.Resources>
   <DockPanel LastChildFill="True" >
     <Grid DockPanel.Dock="Top">
       <Grid.RowDefinitions>
@@ -88,10 +101,13 @@
       </StackPanel>
     </Grid>
 
-    <Image
-      anim:ImageBehavior.AnimatedSource="{Binding SelectedSource.Source}"
-      anim:ImageBehavior.SpeedRatio="{Binding SpeedRatio}"
-      anim:ImageBehavior.RepeatBehavior="{Binding RepeatBehavior}"
+	  <Grid Background="{StaticResource CheckerPatternBrush}">
+
+		  <Image
+			anim:ImageBehavior.AnimatedSource="{Binding SelectedSource.Source}"
+			anim:ImageBehavior.SpeedRatio="{Binding SpeedRatio}"
+			anim:ImageBehavior.RepeatBehavior="{Binding RepeatBehavior}"
       />
+	  </Grid>
   </DockPanel>
 </Window>
