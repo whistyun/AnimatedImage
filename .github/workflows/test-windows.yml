@@ -19,7 +19,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: |
+            9.0.x
+            10.0.x
 
       - name: Build
         run: dotnet build AnimatedImageTest/AnimatedImageTest.csproj -f ${{ matrix.frm }}
@@ -47,7 +49,7 @@ jobs:
       - name: Setup .NET (x86)
         run: |        
           if ("${{ matrix.arch }}" -eq "x86") {
-            winget install Microsoft.DotNet.SDK.9 `
+            winget install Microsoft.DotNet.SDK.10 `
                    --architecture x86 `
                    --accept-package-agreements `
                    --accept-source-agreements `
