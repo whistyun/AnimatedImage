@@ -122,6 +122,20 @@
         </GroupBox>
         <GroupBox Header="Image">
             <Grid>
+                <Grid.Background>
+                    <DrawingBrush TileMode="Tile"
+                                  Viewport="0,0,32,32"
+                                  ViewportUnits="Absolute">
+                        <DrawingBrush.Drawing>
+                            <DrawingGroup>
+                                <GeometryDrawing Brush="#999999"
+                                                 Geometry="M0,0 H2 V2 H0"/>
+                                <GeometryDrawing Geometry="M0,0 H1 V1 H2 V2 H1 V1 H0Z"
+                                                 Brush="#666666" />
+                            </DrawingGroup>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Grid.Background>
                 <Image Name="img" Margin="5"
                        Stretch="None"
                        gif:ImageBehavior.AnimatedSource="{Binding SelectedImage}"
